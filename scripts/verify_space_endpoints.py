@@ -2,9 +2,9 @@ import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from starlette.testclient import TestClient
-from app import app
+from app import demo
 
-client = TestClient(app)
+client = TestClient(demo.app)
 
 # 1. Root route
 r_root = client.get("/")
