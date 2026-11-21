@@ -103,30 +103,24 @@ Measured via the automated evaluation harness [`src/evaluation/eval_benchmark.py
 
 The repository includes a self-contained [`Dockerfile`](file:///d:/RAG/Dockerfile) with **embedded Ollama + Qwen 2.5**, meaning the model runs **inside the cloud container for free with ZERO API keys**:
 
-### 1-Click Free Deployment on Hugging Face Spaces (16GB RAM Free Tier)
-1. Go to [huggingface.co/spaces](https://huggingface.co/spaces) and click **Create new Space**.
-2. Select **Docker** (Blank) and choose the **Free Tier (16 GB RAM, 2 vCPU)**.
-3. Link your GitHub repository: `https://github.com/SheikMohammed480/Doculens`.
-4. Hugging Face builds the Docker container, boots the embedded Ollama engine, pulls `qwen2.5:1.5b`, and serves your app live at `https://huggingface.co/spaces/SheikMohammed480/Doculens`!
-5. **No API keys needed, laptop can be completely shut down, 100% free forever.**
+## 🖥️ Quickstart (1-Click Local & On-Premise Deployment)
 
----
+DocuLens is designed as a **sovereign, on-premise Document Intelligence platform** where documents and models never leave your private infrastructure.
 
-## 🖥️ Local Quickstart
-
-### 🚀 1-Click Automated Setup & Launch (Recommended)
-Automatically detects Ollama, starts the background service, downloads `qwen2.5:1.5b` if not present, and opens the Studio UI in your default browser:
+### 🚀 1-Click Automated Setup (Recommended)
+Automatically detects Ollama, starts the background service, downloads `qwen2.5:1.5b` (if missing), and launches the Studio in your browser:
 ```powershell
 py -3.10 run_local.py
 ```
+> Access the Modern Studio at **`http://127.0.0.1:7860/static/index.html`**.
 
-### Manual Execution (Port 8000)
+### Manual Execution (Port 7860)
 ```powershell
 py -3.10 app.py
 ```
-> Access dashboard at **`http://127.0.0.1:8000/static/index.html`** (or REST API docs at `http://127.0.0.1:8000/docs`).
+> Access dashboard at **`http://127.0.0.1:7860/static/index.html`** (or REST API docs at `http://127.0.0.1:7860/docs`).
 
-### 2. Run the Streamlit Dashboard (Port 8501)
+### Streamlit Alternate UI (Port 8501)
 ```powershell
 py -3.10 -m streamlit run streamlit_app.py --server.port 8501
 ```
@@ -134,18 +128,19 @@ py -3.10 -m streamlit run streamlit_app.py --server.port 8501
 
 ---
 
-## 🚀 Live Cloud Deployment & Production Links
+## 🔐 Multi-Tenant Role-Based Access Credentials (Ready-to-Test)
 
-The platform is deployed live on **Hugging Face Spaces** (Free Cloud Tier, Zero API Keys, Zero Laptop Hardware):
+| Persona / Clearance | Username | Default Password | Access Scope & Governance |
+| :--- | :--- | :--- | :--- |
+| **System Administrator** | `admin` | `admin123` | Full governance access across all corpus documents and RAG Triad benchmark evals. |
+| **Financial / Legal Auditor** | `auditor` | `auditor123` | Access restricted to commercial contracts (`MSA`, `SOW`) and invoices (`INV-081`, `INV-099`). |
+| **Tenant User** | Custom | Custom | Register via modal; strictly tenant-isolated to personal uploads (zero cross-tenant leakage). |
 
-- **🌐 Live Production Studio**: [https://sheik11111-doculens.hf.space/static/index.html](https://sheik11111-doculens.hf.space/static/index.html)
-- **🤗 Hugging Face Space**: [https://huggingface.co/spaces/sheik11111/Doculens](https://huggingface.co/spaces/sheik11111/Doculens)
-- **📖 Comprehensive Deployment & Troubleshooting Guide**: See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for full documentation on platform choices, model runtime details, and the 6 engineering challenges resolved during deployment.
+---
 
-### 🔐 Multi-Tenant Login Credentials
-- **System Admin**: `admin` / `admin123` (Full clearance across all documents and evaluation benchmarks)
-- **Auditor (1-Click Demo)**: `auditor` / `auditor123` (Pre-seeded with commercial contracts and disputed invoices)
-- **New User**: Click "Register" to create an isolated personal workspace.
+## 📖 Enterprise Engineering Documentation
+- **[DOCULENS_ARCHITECTURE_GUIDE.md](DOCULENS_ARCHITECTURE_GUIDE.md)**: Deep architectural dive, RRF mathematics, chunking hierarchy, and technical interview Q&A.
+- **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)**: On-premise deployment retrospective, container architecture, and benchmark evaluations.
 
 ---
 

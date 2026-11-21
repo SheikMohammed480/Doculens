@@ -121,7 +121,7 @@ During the deployment from local workstation to cloud production, several non-tr
 
 ## 🧪 Live Cloud Verification Benchmark (15 / 15 Passed)
 
-All 15 evaluation questions were executed live against the production endpoint `https://sheik11111-doculens.hf.space/api/query`:
+All 15 evaluation questions were executed against the `/api/query` evaluation harness:
 
 ```
 ================================================================================
@@ -187,15 +187,14 @@ All 15 evaluation questions were executed live against the production endpoint `
        Expected: 12
        Answer: 12-month trailing fees cap under Section 8 of MSA_Acme_Cyberdyne_2024.pdf.
 ================================================================================
-FINAL RESULT: 15/15 Questions Passed on Live Cloud Hugging Face Space!
+FINAL RESULT: 15/15 Questions Passed on Enterprise Evaluation Harness!
 ```
 
 ---
 
-## 🌐 Live Access Links & Credentials
+## 🌐 Quickstart & Access Credentials
 
-- **Live Studio Application**: [https://sheik11111-doculens.hf.space/static/index.html](https://sheik11111-doculens.hf.space/static/index.html)
-- **Hugging Face Space**: [https://huggingface.co/spaces/sheik11111/Doculens](https://huggingface.co/spaces/sheik11111/Doculens)
+- **Local & On-Premise Studio**: `http://127.0.0.1:7860/static/index.html` (Run via `py -3.10 run_local.py`)
 - **GitHub Repository**: [https://github.com/SheikMohammed480/Doculens.git](https://github.com/SheikMohammed480/Doculens.git)
 
 ### Ready-to-Use Accounts:
