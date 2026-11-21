@@ -350,6 +350,40 @@ async function executeAudit() {
             }
         }
 
+        // Check if Local Laptop Ollama bridge should synthesize the answer
+        if (localStorage.getItem("doculens_use_local_ollama") === "true" && data.evidence_passages && data.evidence_passages.length > 0) {
+            if (data.answer.includes("AI Neural Model Inference Unavailable") || data.answer.includes("⚠️")) {
+                try {
+                    const localModel = localStorage.getItem("doculens_local_model_name") || "qwen2.5:1.5b";
+                    const contextText = data.evidence_passages.map((p, i) => `--- EXCERPT ${i+1} [Doc: ${p.document}, Page: ${p.page}] ---\n${p.content}`).join("\n\n");
+                    const localPrompt = `You are an enterprise document intelligence assistant.\nAnswer the user's question accurately, directly, and professionally based strictly on the provided source excerpts.\nStructure your answer with clear bullet points. Answer ONLY what the user asks.\n\nContext:\n${contextText}\n\nQuestion: ${query}\n\nAnswer:`;
+
+                    const localResp = await fetch("http://localhost:11434/api/chat", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            model: localModel,
+                            messages: [
+                                { role: "system", content: "You are an enterprise document assistant. Answer accurately based on context. Be concise and use bullet points." },
+                                { role: "user", content: localPrompt }
+                            ],
+                            stream: false,
+                            options: { temperature: 0.1, num_predict: 450 }
+                        })
+                    });
+                    if (localResp.ok) {
+                        const localData = await localResp.json();
+                        const localAns = localData.message ? localData.message.content : "";
+                        if (localAns) {
+                            data.answer = localAns + `\n\n[Doc: ${data.evidence_passages[0].document}, Page: ${data.evidence_passages[0].page}]`;
+                        }
+                    }
+                } catch (localErr) {
+                    console.warn("Local Ollama synthesis fallback error:", localErr);
+                }
+            }
+        }
+
         // Answer formatting
         let formatted = escapeHtml(data.answer);
         formatted = formatted.replace(/\[(?:Doc:\s*)?([^,\]]+),\s*Page:\s*(\d+)(?:,\s*Section:[^\]]*)?\]/g, (match, doc, page) => {
@@ -681,4 +715,76 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadBenchmarkData(true);
     });
     if (reRunBenchBtn) reRunBenchBtn.addEventListener('click', () => loadBenchmarkData(true));
+
+    // ================= 7. LOCAL AI MODEL BRIDGE & MODAL CONTROLS =================
+    const localModal = document.getElementById('localModelModal');
+    const btnLocalModal = document.getElementById('btnLocalModelModal');
+    const closeLocalModal = document.getElementById('closeLocalModelModal');
+    const dismissLocalModal = document.getElementById('btnDismissLocalModal');
+    const btnDetectOllama = document.getElementById('btnDetectLocalOllama');
+
+    if (btnLocalModal && localModal) {
+        btnLocalModal.addEventListener('click', () => {
+            localModal.classList.remove('hidden');
+            if (localStorage.getItem('doculens_use_local_ollama') === 'true') {
+                detectLocalOllama(false);
+            }
+        });
+    }
+
+    if (closeLocalModal && localModal) {
+        closeLocalModal.addEventListener('click', () => localModal.classList.add('hidden'));
+    }
+    if (dismissLocalModal && localModal) {
+        dismissLocalModal.addEventListener('click', () => localModal.classList.add('hidden'));
+    }
+    if (btnDetectOllama) {
+        btnDetectOllama.addEventListener('click', () => detectLocalOllama(true));
+    }
+
+    // Auto-detect on page load if previously connected
+    if (localStorage.getItem('doculens_use_local_ollama') === 'true') {
+        detectLocalOllama(false);
+    }
 });
+
+// Detect Local Ollama via Client Browser
+async function detectLocalOllama(showNotification = true) {
+    const statusBox = document.getElementById("localOllamaStatusBox");
+    const statusLabel = document.getElementById("localModelStatusLabel");
+    const telemetryLLM = document.getElementById("telemetryLLM");
+
+    if (statusBox) {
+        statusBox.className = "p-3.5 rounded-xl border border-sky-800 bg-sky-950/60 text-sky-300 text-[11px] font-mono";
+        statusBox.innerHTML = "⏳ Probing http://localhost:11434...";
+        statusBox.classList.remove("hidden");
+    }
+
+    try {
+        const res = await fetch("http://localhost:11434/api/tags", { method: "GET" });
+        if (!res.ok) throw new Error("Status " + res.status);
+        const data = await res.json();
+        const models = (data.models || []).map(m => m.name);
+        const activeModel = models.find(m => m.includes("qwen")) || models[0] || "qwen2.5:1.5b";
+
+        if (statusBox) {
+            statusBox.className = "p-3.5 rounded-xl border border-emerald-800 bg-emerald-950/80 text-emerald-300 text-[11px] font-mono";
+            statusBox.innerHTML = `✅ Connected to Local Laptop!<br>• Active Model: <b>${activeModel}</b><br>• Available Models: ${models.join(', ') || 'None'}<br>• Status: 100% Ready for Local GPU/CPU inference!`;
+        }
+
+        if (statusLabel) statusLabel.innerText = `🟢 Local: ${activeModel}`;
+        if (telemetryLLM) telemetryLLM.innerText = `Local ${activeModel} (Laptop GPU/CPU)`;
+
+        localStorage.setItem("doculens_use_local_ollama", "true");
+        localStorage.setItem("doculens_local_model_name", activeModel);
+        if (showNotification) showToast(`Local AI connected: ${activeModel}`, true);
+        return true;
+    } catch (e) {
+        if (statusBox) {
+            statusBox.className = "p-3.5 rounded-xl border border-amber-800 bg-amber-950/80 text-amber-300 text-[11px] font-mono";
+            statusBox.innerHTML = `⚠️ Could not reach http://localhost:11434.<br>1. Download and run <b>setup_local_model.bat</b>.<br>2. Keep the Ollama terminal window open.<br>3. Click Detect again.`;
+        }
+        localStorage.removeItem("doculens_use_local_ollama");
+        return false;
+    }
+}
