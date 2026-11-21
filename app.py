@@ -355,17 +355,19 @@ def get_document_page(filename: str, page: int, current_user: Dict[str, Any] = D
 # ================= GRADIO SDK INTEGRATION FOR HUGGING FACE SPACES =================
 try:
     import spaces
-    GPU = spaces.GPU
-except Exception:
-    def GPU(fn=None, **kwargs):
-        if fn is not None:
-            return fn
-        return lambda f: f
+except ImportError:
+    class _MockSpaces:
+        @staticmethod
+        def GPU(fn=None, **kwargs):
+            if fn is not None:
+                return fn
+            return lambda f: f
+    spaces = _MockSpaces()
 
 try:
     import gradio as gr
 
-    @GPU
+    @spaces.GPU
     def gradio_query(query_text: str, persona: str):
         persona_roles = {
             "Auditor (Auditor123)": ("usr-auditor", "auditor"),
