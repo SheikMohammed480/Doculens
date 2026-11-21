@@ -397,36 +397,41 @@ def gradio_query(query_text: str, persona: str):
     disc_str = "⚠️ CONTRACT DISCREPANCY DETECTED" if audit.get("has_discrepancy") else "✅ ALL CLAUSES VERIFIED"
     return audit.get("answer", ""), citations_str, disc_str
 
-with gr.Blocks(title="DocuLens Enterprise AI Studio", theme=gr.themes.Soft()) as demo:
-    gr.Markdown("# 🔍 DocuLens Enterprise Document Intelligence")
-    gr.Markdown(
-        "Enterprise Multi-Tenant RAG with Role-Based Access Control & Contract Auditing.\n\n"
-        "👉 **[Click Here to Open Full Modern UI Studio](/static/index.html)**"
+# Prepare self-contained Modern UI with inlined controller script
+_index_path = os.path.join(STATIC_DIR, "index.html")
+_js_path = os.path.join(STATIC_DIR, "app.js")
+try:
+    with open(_index_path, "r", encoding="utf-8") as _f_idx:
+        _html_raw = _f_idx.read()
+    with open(_js_path, "r", encoding="utf-8") as _f_js:
+        _js_raw = _f_js.read()
+    MODERN_UI_PAGE = _html_raw.replace(
+        '<script src="/static/app.js"></script>',
+        f'<script>\n{_js_raw}\n</script>'
     )
-    with gr.Row():
-        with gr.Column(scale=2):
-            q_box = gr.Textbox(
-                label="Audit Query or Question",
-                placeholder="e.g. Compare payment terms in MSA and Invoice INV-099",
-                lines=3
-            )
-            persona_radio = gr.Radio(
-                ["Auditor (Auditor123)", "Master Admin", "New User (Tenant Isolated)"],
-                value="Auditor (Auditor123)",
-                label="Access Control Clearance Persona"
-            )
-            run_btn = gr.Button("🔍 Run Intelligent Audit", variant="primary")
-        with gr.Column(scale=3):
-            ans_box = gr.Markdown(label="Grounded Synthesis")
-            with gr.Row():
-                cite_box = gr.Textbox(label="Page-Level Citations", lines=3)
-                status_box = gr.Textbox(label="Audit Clearance Status", lines=1)
+except Exception as e:
+    MODERN_UI_PAGE = "<h1>DocuLens Studio loading error</h1>"
 
-    run_btn.click(gradio_query, inputs=[q_box, persona_radio], outputs=[ans_box, cite_box, status_box])
+with gr.Blocks(title="DocuLens Enterprise AI Studio", fill_height=True, fill_width=True) as demo:
+    gr.HTML("""
+    <div style="width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; position: fixed; top: 0; left: 0; z-index: 999999;">
+        <iframe src="/modern" style="width: 100%; height: 100%; border: none; display: block;" allow="clipboard-read; clipboard-write"></iframe>
+    </div>
+    """)
+    # Hidden components to register with ZeroGPU scanner
+    with gr.Row(visible=False):
+        _dummy_in = gr.Textbox(visible=False)
+        _dummy_btn = gr.Button(visible=False)
+        _dummy_out = gr.Textbox(visible=False)
+        _dummy_btn.click(gradio_query, inputs=[_dummy_in, _dummy_in], outputs=[_dummy_out, _dummy_out, _dummy_out])
 
-# Mount Gradio sub-app at /gradio
-app = gr.mount_gradio_app(app, demo, path="/gradio")
+@demo.app.get("/modern")
+def serve_modern():
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(MODERN_UI_PAGE)
+
+# Mount all FastAPI backend endpoints directly into demo.app
+demo.app.include_router(app.router)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 7860))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    demo.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", 7860)))
