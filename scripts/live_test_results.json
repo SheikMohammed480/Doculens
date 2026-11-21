@@ -1,0 +1,107 @@
+[
+  {
+    "id": 1,
+    "query": "name of the candidate",
+    "status": "PASS",
+    "expected": "Sheik Mohammed",
+    "full_answer": "Based on **Sheik_Mohammed_Resume.pdf** (Page 1), the candidate's details are:\n\n\u2022 **Candidate Name**: **Sheik Mohammed M**\n\u2022 **Professional Background**: Computer Science Engineer specializing in Java, Web Development, and AI Engineering\n\u2022 **Current Position**: Junior AI Engineer at Zlendo Technology Private Limited (March 2025 \u2013 Present)\n\u2022 **Education**: Bachelor of Engineering (B.E.) in Computer Science and Engineering from Sethu Institute of Technology (CGPA: 8.8 / 10)\n\n[Doc: Sheik_Mohammed_Resume.pdf, Page: 1]"
+  },
+  {
+    "id": 2,
+    "query": "who is the candidate?",
+    "status": "PASS",
+    "expected": "Sheik Mohammed",
+    "full_answer": "Based on **Sheik_Mohammed_Resume.pdf** (Page 1), the candidate's details are:\n\n\u2022 **Candidate Name**: **Sheik Mohammed M**\n\u2022 **Professional Background**: Computer Science Engineer specializing in Java, Web Development, and AI Engineering\n\u2022 **Current Position**: Junior AI Engineer at Zlendo Technology Private Limited (March 2025 \u2013 Present)\n\u2022 **Education**: Bachelor of Engineering (B.E.) in Computer Science and Engineering from Sethu Institute of Technology (CGPA: 8.8 / 10)\n\n[Doc: Sheik_Mohammed_Resume.pdf, Page: 1]"
+  },
+  {
+    "id": 3,
+    "query": "what are the project he has done ?",
+    "status": "PASS",
+    "expected": "EduCrazepolis",
+    "full_answer": "Based on **Sheik_Mohammed_Resume.pdf** (Page 1), the candidate has designed and implemented the following key projects:\n\n\u2022 **EduCrazepolis (2024)**: An interactive education platform developed using Django, MongoDB, and modern front-end technologies. It integrates gamification, REST APIs, community discussion forums, and mentorship features to enhance user engagement and learning.\n\n\u2022 **HandPlay Hub**: A full-stack Java-based web application featuring secure user authentication, personalized user profiles, and two hand-themed games (Hand Cricket and Rock-Paper-Scissors). Built using Java Servlets, JSP, and MySQL to ensure seamless gameplay and robust data management.\n\n\u2022 **Automatic Grass Cutting Robot using Bluetooth Module**: An engineering hardware and software research project presented as a technical paper at the 10th National Conference.\n\n[Doc: Sheik_Mohammed_Resume.pdf, Page: 1]"
+  },
+  {
+    "id": 4,
+    "query": "tell me about educrazepolis project",
+    "status": "PASS",
+    "expected": "Django",
+    "full_answer": "Based on **Sheik_Mohammed_Resume.pdf** (Page 1), the **EduCrazepolis (2024)** project details are:\n\n\u2022 **Overview**: An interactive education platform developed using Django, MongoDB, and modern front-end technologies.\n\u2022 **Key Features**: Integrated gamification mechanisms, RESTful APIs, community discussion forums, and mentorship capabilities to enhance user engagement and learning.\n\n[Doc: Sheik_Mohammed_Resume.pdf, Page: 1]"
+  },
+  {
+    "id": 5,
+    "query": "tell me about handplay hub project",
+    "status": "PASS",
+    "expected": "Hand Cricket",
+    "full_answer": "Based on **Sheik_Mohammed_Resume.pdf** (Page 1), the **HandPlay Hub** project details are:\n\n\u2022 **Overview**: A full-stack Java-based web application featuring secure user authentication and personalized user profiles.\n\u2022 **Games Included**: Hand Cricket and Rock-Paper-Scissors.\n\u2022 **Tech Stack**: Built using Java Servlets, JSP, and MySQL to ensure seamless gameplay and robust data management.\n\n[Doc: Sheik_Mohammed_Resume.pdf, Page: 1]"
+  },
+  {
+    "id": 6,
+    "query": "what is his technical skills ?",
+    "status": "PASS",
+    "expected": "Java",
+    "full_answer": "According to **Sheik_Mohammed_Resume.pdf** (Page 1), the candidate possesses core competencies across software engineering and web development:\n\n\u2022 **Programming Languages & Concepts**: Java, Object-Oriented Programming (OOP), Collections Framework, JDBC, Applets, Swing, Micro-services, C++, C programming, and Python (Basics).\n\u2022 **Frameworks & Web Technologies**: Spring Boot, Spring Framework (Autowiring, SpEL, AOP), Hibernate, JSP, Servlets, HTML, CSS, and JavaScript (Basics).\n\u2022 **Databases & Tools**: SQL, MongoDB, Eclipse IDE, Apache Tomcat, XAMPP, and Postman API.\n\u2022 **Operating Systems**: Windows.\n\n[Doc: Sheik_Mohammed_Resume.pdf, Page: 1]"
+  },
+  {
+    "id": 7,
+    "query": "what are the programming languages he knows ?",
+    "status": "PASS",
+    "expected": "Java",
+    "full_answer": "According to **Sheik_Mohammed_Resume.pdf** (Page 1), the programming languages the candidate knows are:\n\n\u2022 **Java**: Primary core language (OOP, Collections, JDBC, Applets, Swing, Micro-services)\n\u2022 **C++ Programming**: Advanced object-oriented programming\n\u2022 **C Programming**: Core systems programming\n\u2022 **Python**: Scripting, data manipulation, and AI fundamentals\n\n[Doc: Sheik_Mohammed_Resume.pdf, Page: 1]"
+  },
+  {
+    "id": 8,
+    "query": "where is he currently working ?",
+    "status": "PASS",
+    "expected": "Zlendo",
+    "full_answer": "According to **Sheik_Mohammed_Resume.pdf** (Page 1), the candidate is currently employed as:\n\n\u2022 **Role**: **Junior AI Engineer**\n\u2022 **Company**: **Zlendo Technology Private Limited**\n\u2022 **Location**: Madurai, Tamil Nadu\n\u2022 **Tenure**: March 2025 \u2013 Present\n\n[Doc: Sheik_Mohammed_Resume.pdf, Page: 1]"
+  },
+  {
+    "id": 9,
+    "query": "what is his work experience and internship ?",
+    "status": "PASS",
+    "expected": "Zlendo",
+    "full_answer": "Based on **Sheik_Mohammed_Resume.pdf** (Page 1), the candidate's professional experience and training include:\n\n\u2022 **Junior AI Engineer** at Zlendo Technology Private Limited, Madurai (March 2025 \u2013 Present).\n\u2022 **Java Web Development Intern** at Elysium Academy / Tarcin Robotic LLP (May 2024 \u2013 November 2024), focusing on enterprise application development with Spring Framework, Hibernate, JSP, and Servlets.\n\u2022 **Web Application Development Inplant Training** at Sputnik Infotech (2022).\n\u2022 **Career Objective**: Goal-oriented Computer Science Engineer with expertise in Java and web development, dedicated to contributing to high-impact projects by building secure, scalable applications.\n\n[Doc: Sheik_Mohammed_Resume.pdf, Page: 1]"
+  },
+  {
+    "id": 10,
+    "query": "tell me about his education and college",
+    "status": "PASS",
+    "expected": "Sethu Institute of Technology",
+    "full_answer": "According to **Sheik_Mohammed_Resume.pdf** (Page 1), the candidate's academic qualifications are:\n\n\u2022 **Degree**: Bachelor of Engineering (B.E.) in Computer Science and Engineering.\n\u2022 **Institution**: Sethu Institute of Technology (2020 \u2013 2024).\n\u2022 **Academic Performance**: Graduated with an outstanding CGPA of **8.8 / 10**.\n\n[Doc: Sheik_Mohammed_Resume.pdf, Page: 1]"
+  },
+  {
+    "id": 11,
+    "query": "what is his CGPA ?",
+    "status": "PASS",
+    "expected": "8.8",
+    "full_answer": "According to **Sheik_Mohammed_Resume.pdf** (Page 1), the candidate's academic qualifications are:\n\n\u2022 **Degree**: Bachelor of Engineering (B.E.) in Computer Science and Engineering.\n\u2022 **Institution**: Sethu Institute of Technology (2020 \u2013 2024).\n\u2022 **Academic Performance**: Graduated with an outstanding CGPA of **8.8 / 10**.\n\n[Doc: Sheik_Mohammed_Resume.pdf, Page: 1]"
+  },
+  {
+    "id": 12,
+    "query": "what languages can he speak and what is his fluency ?",
+    "status": "PASS",
+    "expected": "Tamil",
+    "full_answer": "According to **Sheik_Mohammed_Resume.pdf** (Page 1), the candidate's language proficiencies are:\n\n\u2022 **Tamil**: Fluent (Native)\n\u2022 **English**: Intermediate\n\u2022 **Arabic**: Foundational (Basics)\n\u2022 **French**: Foundational (Basics)\n\n[Doc: Sheik_Mohammed_Resume.pdf, Page: 1]"
+  },
+  {
+    "id": 13,
+    "query": "how can i contact him? email and phone",
+    "status": "PASS",
+    "expected": "sheikmohammed480@gmail.com",
+    "full_answer": "According to **Sheik_Mohammed_Resume.pdf** (Page 1), the candidate's contact details are:\n\n\u2022 **Email**: sheikmohammed480@gmail.com\n\u2022 **Phone**: +91-7904119125\n\u2022 **Location**: 32, Ramraj Nagar 5th West Cross Street, Villapuram, Madurai, Tamil Nadu.\n\n[Doc: Sheik_Mohammed_Resume.pdf, Page: 1]"
+  },
+  {
+    "id": 14,
+    "query": "audit discrepancies in INV-099",
+    "status": "PASS",
+    "expected": "210",
+    "full_answer": "\u26a0\ufe0f **Contract Discrepancy & Overcharge Detected**:\n\nInvoice **INV_2024_099_Disputed.pdf** (Page 1) bills Cloud Security Architecture at **$210.00/hour** for 80 hours (Total: $16,800.00). However, under the governing Statement of Work **SOW_Cloud_Infrastructure.pdf** (Page 1), the contracted rate for Cloud Security Architecture is strictly capped at **$175.00/hour**.\n\n\u2022 **Contracted Rate**: $175.00/hour\n\u2022 **Billed Rate**: $210.00/hour\n\u2022 **Rate Variance**: +$35.00/hour (Unauthorized Overcharge)\n\u2022 **Financial Impact**: **$2,800.00** total overcharge across 80 billed hours.\n\n[Doc: INV_2024_099_Disputed.pdf, Page: 1]\n[Doc: SOW_Cloud_Infrastructure.pdf, Page: 1]"
+  },
+  {
+    "id": 15,
+    "query": "what is the limitation of liability cap under the agreement?",
+    "status": "PASS",
+    "expected": "12",
+    "full_answer": "Based on **MSA_Acme_Cyberdyne_2024.pdf** (Page 2), Section 8 (Limitation of Liability):\n\n\u2022 **General Aggregate Liability Cap**: Neither party's aggregate liability shall exceed the total fees paid or payable by Client to Service Provider under the applicable Statement of Work in the twelve (12) months preceding the incident.\n\u2022 **Liability Carve-Outs**: The liability cap does not apply to breaches of Section 7 (Confidentiality & Data Protection), indemnification obligations under Section 9, or damages resulting from gross negligence or willful misconduct.\n\n[Doc: MSA_Acme_Cyberdyne_2024.pdf, Page: 2]"
+  }
+]
