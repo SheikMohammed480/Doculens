@@ -188,12 +188,37 @@ def get_demo_users():
 
 # ================= RAG & DOCUMENT APIS WITH RBAC =================
 
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    # Ensure iframe embedding is allowed inside Hugging Face Spaces and external parents
+    response.headers["Content-Security-Policy"] = "frame-ancestors 'self' https://huggingface.co https://*.huggingface.co https://*.hf.space"
+    if "X-Frame-Options" in response.headers:
+        del response.headers["X-Frame-Options"]
+    return response
+
+# Prepare self-contained Modern UI with inlined controller script
+_index_path = os.path.join(STATIC_DIR, "index.html")
+_js_path = os.path.join(STATIC_DIR, "app.js")
+try:
+    with open(_index_path, "r", encoding="utf-8") as _f_idx:
+        _html_raw = _f_idx.read()
+    with open(_js_path, "r", encoding="utf-8") as _f_js:
+        _js_raw = _f_js.read()
+    MODERN_UI_PAGE = _html_raw.replace(
+        '<script src="/static/app.js"></script>',
+        f'<script>\n{_js_raw}\n</script>'
+    )
+except Exception as e:
+    MODERN_UI_PAGE = "<h1>DocuLens Studio loading error</h1>"
+
 @app.get("/")
+@app.get("/static/index.html")
+@app.get("/studio")
+@app.get("/modern")
 def serve_enterprise_ui():
-    index_file = os.path.join(STATIC_DIR, "index.html")
-    if not os.path.exists(index_file):
-        raise HTTPException(status_code=404, detail="Frontend index.html not found")
-    return FileResponse(index_file)
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(MODERN_UI_PAGE)
 
 @app.get("/api/system-status")
 def get_system_status():
@@ -397,25 +422,8 @@ def gradio_query(query_text: str, persona: str):
     disc_str = "⚠️ CONTRACT DISCREPANCY DETECTED" if audit.get("has_discrepancy") else "✅ ALL CLAUSES VERIFIED"
     return audit.get("answer", ""), citations_str, disc_str
 
-# Prepare self-contained Modern UI with inlined controller script
-_index_path = os.path.join(STATIC_DIR, "index.html")
-_js_path = os.path.join(STATIC_DIR, "app.js")
-try:
-    with open(_index_path, "r", encoding="utf-8") as _f_idx:
-        _html_raw = _f_idx.read()
-    with open(_js_path, "r", encoding="utf-8") as _f_js:
-        _js_raw = _f_js.read()
-    MODERN_UI_PAGE = _html_raw.replace(
-        '<script src="/static/app.js"></script>',
-        f'<script>\n{_js_raw}\n</script>'
-    )
-except Exception as e:
-    MODERN_UI_PAGE = "<h1>DocuLens Studio loading error</h1>"
-
 with gr.Blocks(title="DocuLens Enterprise AI Studio", fill_height=True, fill_width=True) as demo:
-    # Full-screen iframe as robust fallback for Gradio Svelte innerHTML container
-    gr.HTML('<iframe src="/studio" style="position:fixed;top:0;left:0;width:100vw;height:100vh;border:none;margin:0;padding:0;z-index:999999;background:#070b14;"></iframe>')
-
+    gr.Markdown("# DocuLens Enterprise AI Studio — ZeroGPU Inference Backend Active")
     # Hidden components to register with ZeroGPU scanner
     with gr.Row(visible=False):
         _dummy_in = gr.Textbox(visible=False)
@@ -423,34 +431,9 @@ with gr.Blocks(title="DocuLens Enterprise AI Studio", fill_height=True, fill_wid
         _dummy_out = gr.Textbox(visible=False)
         _dummy_btn.click(gradio_query, inputs=[_dummy_in, _dummy_in], outputs=[_dummy_out, _dummy_out, _dummy_out])
 
-from starlette.routing import Route
-from fastapi.responses import HTMLResponse, FileResponse
-
-def serve_modern_ui(request):
-    return HTMLResponse(MODERN_UI_PAGE)
-
-def serve_app_js(request):
-    return FileResponse(os.path.join(STATIC_DIR, "app.js"))
-
-# Priority 0 routes in Starlette router: served before Gradio's internal handlers
-demo.app.router.routes.insert(0, Route("/static/index.html", serve_modern_ui))
-demo.app.router.routes.insert(0, Route("/studio", serve_modern_ui))
-demo.app.router.routes.insert(0, Route("/modern", serve_modern_ui))
-demo.app.router.routes.insert(0, Route("/static/app.js", serve_app_js))
-demo.app.router.routes.insert(0, Route("/app.js", serve_app_js))
-demo.app.router.routes.insert(0, Route("/", serve_modern_ui))
-
-# Mount all FastAPI backend endpoints directly into demo.app
-demo.app.include_router(app.router)
-
-# Enable CORS on demo.app for cross-origin browser requests
-demo.app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Mount Gradio demo onto FastAPI at /gradio
+app = gr.mount_gradio_app(app, demo, path="/gradio")
 
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", 7860)))
+    port = int(os.environ.get("PORT", 7860))
+    uvicorn.run(app, host="0.0.0.0", port=port)
