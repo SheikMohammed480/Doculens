@@ -114,11 +114,17 @@ The repository includes a self-contained [`Dockerfile`](file:///d:/RAG/Dockerfil
 
 ## 🖥️ Local Quickstart
 
-### 1. Run the FastAPI Modern Studio (Port 8000)
+### 🚀 1-Click Automated Setup & Launch (Recommended)
+Automatically detects Ollama, starts the background service, downloads `qwen2.5:1.5b` if not present, and opens the Studio UI in your default browser:
+```powershell
+py -3.10 run_local.py
+```
+
+### Manual Execution (Port 8000)
 ```powershell
 py -3.10 app.py
 ```
-> Access dashboard at **`http://127.0.0.1:8000`** (or REST API docs at `http://127.0.0.1:8000/docs`).
+> Access dashboard at **`http://127.0.0.1:8000/static/index.html`** (or REST API docs at `http://127.0.0.1:8000/docs`).
 
 ### 2. Run the Streamlit Dashboard (Port 8501)
 ```powershell
