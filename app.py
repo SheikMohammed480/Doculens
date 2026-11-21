@@ -424,9 +424,9 @@ with gr.Blocks(title="DocuLens Enterprise AI Studio", theme=gr.themes.Soft()) as
 
     run_btn.click(gradio_query, inputs=[q_box, persona_radio], outputs=[ans_box, cite_box, status_box])
 
-# Include FastAPI routes and static folder directly into demo.app
-demo.app.include_router(app.router)
-demo.app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+# Mount Gradio sub-app at /gradio
+app = gr.mount_gradio_app(app, demo, path="/gradio")
 
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", 7860)))
+    port = int(os.environ.get("PORT", 7860))
+    uvicorn.run(app, host="0.0.0.0", port=port)
