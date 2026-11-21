@@ -354,9 +354,17 @@ def get_document_page(filename: str, page: int, current_user: Dict[str, Any] = D
 
 # ================= GRADIO SDK INTEGRATION FOR HUGGING FACE SPACES =================
 try:
+    import spaces
+    @spaces.GPU
+    def dummy_gpu_task():
+        pass
+except (ImportError, Exception):
+    spaces = None
+
+try:
     import gradio as gr
 
-    def gradio_query(query_text: str, persona: str):
+    def _internal_gradio_query(query_text: str, persona: str):
         persona_roles = {
             "Auditor (Auditor123)": ("usr-auditor", "auditor"),
             "Master Admin": ("usr-admin", "admin"),
@@ -379,6 +387,14 @@ try:
         citations_str = "\n".join([f"• {c['document']} (Page {c['page']})" for c in audit.get("citations", [])]) or "None"
         disc_str = "⚠️ CONTRACT DISCREPANCY DETECTED" if audit.get("has_discrepancy") else "✅ ALL CLAUSES VERIFIED"
         return audit.get("answer", ""), citations_str, disc_str
+
+    if spaces is not None:
+        try:
+            gradio_query = spaces.GPU(_internal_gradio_query)
+        except Exception:
+            gradio_query = _internal_gradio_query
+    else:
+        gradio_query = _internal_gradio_query
 
     with gr.Blocks(title="DocuLens Enterprise AI", theme=gr.themes.Soft()) as gradio_demo:
         gr.Markdown("# 🔍 DocuLens Enterprise Document Intelligence")
