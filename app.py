@@ -368,6 +368,9 @@ import gradio as gr
 
 @spaces.GPU
 def gradio_query(query_text: str, persona: str):
+    if not query_text or not query_text.strip():
+        return "Please enter an audit inquiry or question.", "None", "Ready"
+
     persona_roles = {
         "Auditor (Auditor123)": ("usr-auditor", "auditor"),
         "Master Admin": ("usr-admin", "admin"),
@@ -376,17 +379,20 @@ def gradio_query(query_text: str, persona: str):
     uid, role = persona_roles.get(persona, ("usr-auditor", "auditor"))
     permitted = auth_mgr.get_user_permitted_documents(uid, role)
 
-    results = store.hybrid_search(
-        query=query_text,
-        embedder=embedder,
-        reranker=reranker,
-        allowed_documents=permitted,
-        top_k=5
-    )
-    if not results:
-        return "No permitted documents match your query under role: " + role, "None", "No Discrepancy"
+    q = query_text.strip()
+    q_emb = embedder.embed_query(q)
 
-    audit = generator.generate_audit_answer(query_text, results)
+    candidates = store.hybrid_search(
+        query=q,
+        query_embedding=q_emb,
+        top_k=15,
+        allowed_documents=permitted
+    )
+    if not candidates:
+        return f"No permitted documents found matching query under role '{role}'.", "None", "No Discrepancy"
+
+    reranked = reranker.rerank(q, candidates, top_k=5)
+    audit = generator.generate_audit_answer(q, reranked)
     citations_str = "\n".join([f"• {c['document']} (Page {c['page']})" for c in audit.get("citations", [])]) or "None"
     disc_str = "⚠️ CONTRACT DISCREPANCY DETECTED" if audit.get("has_discrepancy") else "✅ ALL CLAUSES VERIFIED"
     return audit.get("answer", ""), citations_str, disc_str
