@@ -364,67 +364,63 @@ except ImportError:
             return lambda f: f
     spaces = _MockSpaces()
 
-try:
-    import gradio as gr
+import gradio as gr
 
-    @spaces.GPU
-    def gradio_query(query_text: str, persona: str):
-        persona_roles = {
-            "Auditor (Auditor123)": ("usr-auditor", "auditor"),
-            "Master Admin": ("usr-admin", "admin"),
-            "New User (Tenant Isolated)": ("usr-demo", "user")
-        }
-        uid, role = persona_roles.get(persona, ("usr-auditor", "auditor"))
-        permitted = auth_mgr.get_user_permitted_documents(uid, role)
+@spaces.GPU
+def gradio_query(query_text: str, persona: str):
+    persona_roles = {
+        "Auditor (Auditor123)": ("usr-auditor", "auditor"),
+        "Master Admin": ("usr-admin", "admin"),
+        "New User (Tenant Isolated)": ("usr-demo", "user")
+    }
+    uid, role = persona_roles.get(persona, ("usr-auditor", "auditor"))
+    permitted = auth_mgr.get_user_permitted_documents(uid, role)
 
-        results = store.hybrid_search(
-            query=query_text,
-            embedder=embedder,
-            reranker=reranker,
-            allowed_documents=permitted,
-            top_k=5
-        )
-        if not results:
-            return "No permitted documents match your query under role: " + role, "None", "No Discrepancy"
+    results = store.hybrid_search(
+        query=query_text,
+        embedder=embedder,
+        reranker=reranker,
+        allowed_documents=permitted,
+        top_k=5
+    )
+    if not results:
+        return "No permitted documents match your query under role: " + role, "None", "No Discrepancy"
 
-        audit = generator.generate_audit_answer(query_text, results)
-        citations_str = "\n".join([f"• {c['document']} (Page {c['page']})" for c in audit.get("citations", [])]) or "None"
-        disc_str = "⚠️ CONTRACT DISCREPANCY DETECTED" if audit.get("has_discrepancy") else "✅ ALL CLAUSES VERIFIED"
-        return audit.get("answer", ""), citations_str, disc_str
+    audit = generator.generate_audit_answer(query_text, results)
+    citations_str = "\n".join([f"• {c['document']} (Page {c['page']})" for c in audit.get("citations", [])]) or "None"
+    disc_str = "⚠️ CONTRACT DISCREPANCY DETECTED" if audit.get("has_discrepancy") else "✅ ALL CLAUSES VERIFIED"
+    return audit.get("answer", ""), citations_str, disc_str
 
-    with gr.Blocks(title="DocuLens Enterprise AI", theme=gr.themes.Soft()) as gradio_demo:
-        gr.Markdown("# 🔍 DocuLens Enterprise Document Intelligence")
-        gr.Markdown(
-            "Enterprise Multi-Tenant RAG with Role-Based Access Control & Contract Auditing.\n\n"
-            "👉 **[Click Here to Open Full Modern UI Studio](/)**"
-        )
-        with gr.Row():
-            with gr.Column(scale=2):
-                q_box = gr.Textbox(
-                    label="Audit Query or Question",
-                    placeholder="e.g. Compare payment terms in MSA and Invoice INV-099",
-                    lines=3
-                )
-                persona_radio = gr.Radio(
-                    ["Auditor (Auditor123)", "Master Admin", "New User (Tenant Isolated)"],
-                    value="Auditor (Auditor123)",
-                    label="Access Control Clearance Persona"
-                )
-                run_btn = gr.Button("🔍 Run Intelligent Audit", variant="primary")
-            with gr.Column(scale=3):
-                ans_box = gr.Markdown(label="Grounded Synthesis")
-                with gr.Row():
-                    cite_box = gr.Textbox(label="Page-Level Citations", lines=3)
-                    status_box = gr.Textbox(label="Audit Clearance Status", lines=1)
+with gr.Blocks(title="DocuLens Enterprise AI Studio", theme=gr.themes.Soft()) as demo:
+    gr.Markdown("# 🔍 DocuLens Enterprise Document Intelligence")
+    gr.Markdown(
+        "Enterprise Multi-Tenant RAG with Role-Based Access Control & Contract Auditing.\n\n"
+        "👉 **[Click Here to Open Full Modern UI Studio](/static/index.html)**"
+    )
+    with gr.Row():
+        with gr.Column(scale=2):
+            q_box = gr.Textbox(
+                label="Audit Query or Question",
+                placeholder="e.g. Compare payment terms in MSA and Invoice INV-099",
+                lines=3
+            )
+            persona_radio = gr.Radio(
+                ["Auditor (Auditor123)", "Master Admin", "New User (Tenant Isolated)"],
+                value="Auditor (Auditor123)",
+                label="Access Control Clearance Persona"
+            )
+            run_btn = gr.Button("🔍 Run Intelligent Audit", variant="primary")
+        with gr.Column(scale=3):
+            ans_box = gr.Markdown(label="Grounded Synthesis")
+            with gr.Row():
+                cite_box = gr.Textbox(label="Page-Level Citations", lines=3)
+                status_box = gr.Textbox(label="Audit Clearance Status", lines=1)
 
-        run_btn.click(gradio_query, inputs=[q_box, persona_radio], outputs=[ans_box, cite_box, status_box])
+    run_btn.click(gradio_query, inputs=[q_box, persona_radio], outputs=[ans_box, cite_box, status_box])
 
-    # Mount Gradio sub-app at /gradio
-    app = gr.mount_gradio_app(app, gradio_demo, path="/gradio")
-except Exception as e:
-    print(f"Gradio mounting bypassed: {e}")
+# Include FastAPI routes and static folder directly into demo.app
+demo.app.include_router(app.router)
+demo.app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 7860))
-    host = "0.0.0.0" if os.environ.get("PORT") else "127.0.0.1"
-    uvicorn.run("app:app", host=host, port=port, reload=False)
+    demo.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", 7860)))
