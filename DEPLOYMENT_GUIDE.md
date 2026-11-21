@@ -1,125 +1,124 @@
-# 🚀 DocuLens Enterprise RAG: Free Hosting & Deployment Blueprint
+# 🚀 DocuLens Enterprise RAG: Cloud Deployment Guide
+### 100% Free Hosting • Embedded Model • Zero API Keys • Zero Laptop Hardware
 
 ---
 
-## 1. Where Will the Model Run? (The Big Picture)
+## 🎯 The Core Problem & Solution
 
-A production RAG application has two primary workloads:
-
-| Workload | What it Does | Hardware Needed | Best Free Hosting Location |
-| :--- | :--- | :--- | :--- |
-| **Tier 1: Web App & Retrieval Engine** | FastAPI Server, HTML/Tailwind Frontend, SQLite Auth DB, FastEmbed Embeddings (`BGE-small`), Cross-Encoder Reranker | ~500 MB – 1 GB RAM, standard CPU | **Render Free Tier**, **Hugging Face Spaces**, or **Railway** |
-| **Tier 2: The Large Language Model (LLM)** | Qwen 2.5 / LLaMA 3.2 synthesis & discrepancy detection | GPU or high-speed LPU | **Option A**: Your local NVIDIA GPU (via Cloudflare Tunnel)  <br>**Option B**: Groq Cloud Free API (Open-Weight Qwen/Llama at 500+ t/s) |
-
----
-
-## 2. The 3 Best 100% Free Deployment Methods
+| Question / Constraint | The Solution |
+| :--- | :--- |
+| **"Model will not run on my laptop"** | The model runs **100% inside the cloud container**. You can turn off your laptop completely. |
+| **"No API keys"** | Zero OpenAI, Anthropic, or Groq API keys required. We use **open-weight Qwen 2.5 (1.5B)** running locally on CPU inside the Linux container. |
+| **"How can I host it for free?"** | **Hugging Face Spaces (Free Docker Tier)** provides **16 GB RAM, 2 vCPUs, and 50 GB storage** permanently for **$0.00** without a credit card. |
+| **"Where will the model run?"** | Inside the Docker container, `start.sh` boots an embedded Linux **Ollama daemon** which serves `qwen2.5:1.5b` directly to FastAPI on internal port `11434`. |
 
 ---
 
-### 🌟 Method 1: Instant Public URL via Cloudflare Tunnel (Best for Portfolio & Client Demos)
-
-This method keeps **Qwen 2.5 running on your local NVIDIA GPU via Ollama** for free, while exposing your web application to a secure, public HTTPS URL that anyone worldwide can open on their phone or browser.
+## 🏗️ Architecture: Self-Contained Cloud Container
 
 ```mermaid
-flowchart LR
-    User["Any User in the World (Mobile/PC)"] --> Cloudflare["Cloudflare Edge Network (HTTPS)"]
-    Cloudflare --> Tunnel["Secure Tunnel (cloudflared)"]
-    Tunnel --> LocalApp["Your Laptop: FastAPI (Port 8000)"]
-    LocalApp --> LocalGPU["Local NVIDIA CUDA GPU (Ollama: Qwen 2.5)"]
+flowchart TD
+    subgraph Cloud["Hugging Face Spaces (16GB RAM / 2 vCPU Free Tier)"]
+        subgraph Container["DocuLens Docker Container (Port 7860)"]
+            UI["Modern Studio UI (HTML5 / Tailwind / Vanilla JS)"]
+            FastAPI["FastAPI Backend (app.py)"]
+            FastEmbed["FastEmbed (BAAI/bge-small-en-v1.5)"]
+            Reranker["Cross-Encoder Reranker (ms-marco-MiniLM-L-6-v2)"]
+            AuthDB["SQLite Multi-Tenant Auth DB (data/enterprise_auth.db)"]
+            Ollama["Embedded Ollama Service (127.0.0.1:11434)"]
+            LLM["Qwen 2.5 (1.5B Quantized GGUF Model)"]
+        end
+    end
+
+    User["Any Web Browser / Mobile Device"] -->|"HTTPS Request"| UI
+    UI --> FastAPI
+    FastAPI --> FastEmbed & Reranker & AuthDB
+    FastAPI -->|"Chat Synthesis"| Ollama
+    Ollama --> LLM
 ```
 
-#### Steps to Deploy in 2 Minutes:
-1. **Download Cloudflare's free tunnel client** (`cloudflared`):
-   ```powershell
-   # In PowerShell:
-   winget install Cloudflare.cloudflared
-   ```
-2. **Start your DocuLens app locally**:
-   ```powershell
-   cd d:\RAG
-   py -3.10 app.py
-   ```
-3. **Open the tunnel**:
-   ```powershell
-   cloudflared tunnel --url http://127.0.0.1:8000
-   ```
-4. **Result**: Cloudflare gives you a free public link:
-   ```text
-   +-----------------------------------------------------------------------+
-   |  Your quick Tunnel has been created! Visit it at:                    |
-   |  https://doculens-enterprise-demo.trycloudflare.com                   |
-   +-----------------------------------------------------------------------+
-   ```
-*✅ 100% Free, zero cloud setup, keeps your local GPU active, and anyone can test your live app.*
+---
+
+## 📋 Step-by-Step Deployment Instructions
+
+### Step 1: Create a Free Hugging Face Account
+1. Visit [huggingface.co/join](https://huggingface.co/join) and create a free account (if you don't already have one).
+2. No credit card is required.
 
 ---
 
-### ☁️ Method 2: 100% Cloud Hosting on Render (Laptop Can Be Turned Off)
+### Step 2: Create a New Space
+1. Go to [huggingface.co/spaces](https://huggingface.co/spaces) and click **"Create new Space"** (or click the plus icon on your profile).
+2. Fill in the fields:
+   - **Space Name**: `Doculens`
+   - **License**: `mit` (or `apache-2.0`)
+   - **Space SDK**: Select **`Docker`** $\rightarrow$ choose **`Blank`**.
+   - **Space Hardware**: Keep **`Free (2 vCPU, 16 GB RAM)`**.
+   - **Visibility**: `Public` (recommended so others can test your app).
+3. Click **"Create Space"**.
 
-If you want the web app to run 24/7 even when your laptop is turned off, deploy the web app to **Render** and use **Groq's 100% Free Open-Weight Tier** for the LLM.
+---
 
-```mermaid
-flowchart LR
-    User["Internet User"] --> Render["Render.com Free Web Service (FastAPI + Embeddings)"]
-    Render --> Groq["Groq Cloud LPU (Free Open-Weight Qwen 2.5 / LLaMA 3.3)"]
+### Step 3: Link Your GitHub Repository to the Space
+
+There are two easy ways to deploy your code to the Space:
+
+#### Option A: One-Command Git Push from Your Terminal (Recommended)
+Hugging Face Spaces gives you a Git URL for your Space:
+```bash
+# In your terminal (inside d:\RAG):
+# 1. Add your Hugging Face space as a secondary git remote
+git remote add hf https://huggingface.co/spaces/<YOUR_HF_USERNAME>/Doculens
+
+# 2. Push directly to Hugging Face
+git push hf main
 ```
+*(When prompted for credentials, use your Hugging Face username and your HF Access Token from [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens) as the password).*
 
-#### Why Groq for the Model?
-- **100% Free**: No credit card required.
-- **Open-Weight**: Hosts official open-weight models (`qwen-2.5-32b`, `llama-3.3-70b-versatile`, `llama-3.2-3b-preview`).
-- **Blazing Speed**: Generates 500+ tokens/second (10x faster than local laptops).
-
-#### Step-by-Step Guide:
-1. **Get a Free Groq API Key**:
-   - Go to [console.groq.com](https://console.groq.com) $\rightarrow$ Sign in $\rightarrow$ Click **API Keys** $\rightarrow$ **Create API Key**.
-2. **Push your code to GitHub**:
-   ```powershell
-   cd d:\RAG
-   git init
-   git add .
-   git commit -m "DocuLens Enterprise RAG with RBAC"
-   git remote add origin https://github.com/<your-username>/doculens-rag.git
-   git push -u origin main
-   ```
-3. **Deploy on Render**:
-   - Go to [render.com](https://render.com) and click **New Web Service**.
-   - Connect your GitHub repository `doculens-rag`.
-   - Configure:
-     - **Runtime**: `Python 3` (or `Docker`)
-     - **Build Command**: `pip install -r requirements.txt`
-     - **Start Command**: `uvicorn app:app --host 0.0.0.0 --port $PORT`
-     - **Instance Type**: `Free`
-   - Under **Environment Variables**, add:
-     - `GROQ_API_KEY`: `<your_free_groq_api_key>`
-     - `GROQ_MODEL`: `qwen-2.5-32b` (or `llama-3.3-70b-versatile`)
-4. **Click Deploy**:
-   - Render builds the container and gives you a free live URL: `https://doculens-rag.onrender.com`.
+#### Option B: Automatic Sync from GitHub
+1. In your Hugging Face Space, click **Settings**.
+2. Scroll to **"GitHub Actions"** or clone the repository to the Space.
 
 ---
 
-### 📦 Method 3: Hugging Face Spaces (Free Docker Container with 16GB RAM)
-
-Hugging Face Spaces offers a **100% Free CPU Tier with 16 GB RAM and 2 vCPUs** permanently:
-
-1. Go to [huggingface.co/spaces](https://huggingface.co/spaces) $\rightarrow$ Click **Create new Space**.
-2. Space SDK: Select **Docker** (Blank).
-3. Set Space hardware: **Free (2 vCPU, 16 GB RAM)**.
-4. Push your `Dockerfile`, `app.py`, `requirements.txt`, `static/`, and `src/` to it.
-5. In Space Settings $\rightarrow$ **Repository Secrets**, add:
-   - `GROQ_API_KEY`: `<your_free_groq_api_key>`
-6. Hugging Face builds your Docker container automatically and serves your app on `https://huggingface.co/spaces/<your-name>/doculens-rag`.
+### Step 4: Watch the Container Build & Run
+1. In your Space's **"App"** or **"Logs"** tab, you will see the build log:
+   - Installing Python dependencies (`fastapi`, `fastembed`, `pyjwt`, `pdfplumber`).
+   - Installing Linux Ollama CLI.
+   - `start.sh` boots `ollama serve`.
+   - `start.sh` downloads `qwen2.5:1.5b` (takes ~15-20 seconds in HF's high-speed datacenter).
+   - `uvicorn app:app --port 7860` starts.
+2. The status indicator turns from **Building** $\rightarrow$ **Running**!
+3. Your live application will appear directly at:
+   `https://huggingface.co/spaces/<YOUR_HF_USERNAME>/Doculens`
 
 ---
 
-## 3. Comparison of Free Hosting Options
+## 🔐 Multi-Tenant Login Credentials for Testing
 
-| Dimension | Method 1: Cloudflare Tunnel | Method 2: Render + Groq | Method 3: Hugging Face Spaces |
-| :--- | :--- | :--- | :--- |
-| **Setup Time** | **2 minutes** | 5 minutes | 5 minutes |
-| **Laptop Needs to Be On?** | Yes (uses your local GPU) | **No (100% Cloud 24/7)** | **No (100% Cloud 24/7)** |
-| **LLM Inference Location** | Local NVIDIA GPU (Ollama) | Groq Cloud LPU ($0) | Groq Cloud LPU or Local CPU |
-| **Cost** | **$0.00** | **$0.00** | **$0.00** |
-| **Credit Card Required?** | **None** | **None** | **None** |
-| **Speed** | 15–30 tokens/sec | **500+ tokens/sec** | 500+ tokens/sec |
-| **Best For** | Live interviews & rapid testing | Permanent portfolio link | Open-source community showcase |
+Once deployed, anyone can access your live link:
+- **Auditor Persona (1-Click Demo)**:
+  - Username: `auditor`
+  - Password: `auditor123`
+  - Scope: Permitted to view and audit all Legal & Financial contracts/invoices (`MSA_Acme_Cyberdyne_2024.pdf`, `INV_2024_081_Compliant.pdf`, etc.).
+- **Regular User (Public Self-Registration)**:
+  - Anyone can click **"Create an Account"**.
+  - All new public accounts are strictly locked to the role `user`.
+  - Zero cross-tenant data leakage: Regular users only see their own uploaded documents.
+- **Admin Persona**:
+  - Username: `admin`
+  - Password: `admin123`
+  - Scope: Complete platform governance and access to all enterprise documents.
+
+---
+
+## ⚡ Summary of Why This Setup Is Ideal
+
+| Feature | DocuLens Cloud Implementation |
+| :--- | :--- |
+| **Cost** | **$0.00 / Month** (Hugging Face Free Tier) |
+| **API Keys** | **None** (Self-contained open-weight model) |
+| **Hardware Required** | **Zero laptop dependency** (Runs 24/7 on HF Cloud CPU) |
+| **Model Size** | `qwen2.5:1.5b` (~980 MB disk, ~1.2 GB RAM footprint) |
+| **Available RAM on HF** | **16 GB RAM** (Plenty of headroom for embeddings + model) |
+| **Persistence** | Embedded SQLite DB for user accounts and documents |

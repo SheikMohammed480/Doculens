@@ -11,8 +11,11 @@ import urllib.request
 from typing import List, Dict, Any, Optional
 
 class OpenWeightGenerator:
-    def __init__(self, ollama_model: str = "qwen2.5:1.5b", ollama_url: str = "http://localhost:11434"):
-        self.ollama_url = ollama_url
+    def __init__(self, ollama_model: str = "qwen2.5:1.5b", ollama_url: Optional[str] = None):
+        raw_url = ollama_url or os.environ.get("OLLAMA_URL", os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434"))
+        if not raw_url.startswith("http://") and not raw_url.startswith("https://"):
+            raw_url = f"http://{raw_url}"
+        self.ollama_url = raw_url
         self.groq_api_key = os.environ.get("GROQ_API_KEY", "")
         self.groq_model = os.environ.get("GROQ_MODEL", "qwen-2.5-32b")
         self.active_model = self._detect_available_model() or ollama_model
