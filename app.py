@@ -422,10 +422,8 @@ def gradio_query(query_text: str, persona: str):
     disc_str = "⚠️ CONTRACT DISCREPANCY DETECTED" if audit.get("has_discrepancy") else "✅ ALL CLAUSES VERIFIED"
     return audit.get("answer", ""), citations_str, disc_str
 
-with gr.Blocks(title="DocuLens Enterprise AI Studio", fill_height=True, fill_width=True) as demo:
-    # Full-screen iframe fallback
-    gr.HTML('<iframe src="/studio" style="position:fixed;top:0;left:0;width:100vw;height:100vh;border:none;margin:0;padding:0;z-index:999999;background:#070b14;"></iframe>')
-
+with gr.Blocks(title="DocuLens Enterprise AI Studio") as demo:
+    gr.Markdown("# DocuLens Enterprise AI Studio — ZeroGPU Inference Backend Active")
     # Hidden components to register with ZeroGPU scanner
     with gr.Row(visible=False):
         _dummy_in = gr.Textbox(visible=False)
@@ -433,38 +431,9 @@ with gr.Blocks(title="DocuLens Enterprise AI Studio", fill_height=True, fill_wid
         _dummy_out = gr.Textbox(visible=False)
         _dummy_btn.click(gradio_query, inputs=[_dummy_in, _dummy_in], outputs=[_dummy_out, _dummy_out, _dummy_out])
 
-from starlette.routing import Route
-from fastapi.responses import HTMLResponse, FileResponse
-
-def serve_modern_ui(request):
-    return HTMLResponse(MODERN_UI_PAGE)
-
-def serve_app_js(request):
-    return FileResponse(os.path.join(STATIC_DIR, "app.js"))
-
-# Priority 0 routes in Starlette router: served before Gradio's internal handlers
-demo.app.router.routes.insert(0, Route("/static/index.html", serve_modern_ui))
-demo.app.router.routes.insert(0, Route("/studio", serve_modern_ui))
-demo.app.router.routes.insert(0, Route("/modern", serve_modern_ui))
-demo.app.router.routes.insert(0, Route("/static/app.js", serve_app_js))
-demo.app.router.routes.insert(0, Route("/app.js", serve_app_js))
-demo.app.router.routes.insert(0, Route("/", serve_modern_ui))
-
-# Mount all FastAPI backend endpoints directly into demo.app
-demo.app.include_router(app.router)
-
-# Enable CORS on demo.app for cross-origin browser requests
-demo.app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Mount Gradio sub-app at /gradio with ssr_mode=False to prevent Node proxy from hogging port 7860
+app = gr.mount_gradio_app(app, demo, path="/gradio", ssr_mode=False)
 
 if __name__ == "__main__":
-    demo.launch(
-        server_name="0.0.0.0",
-        server_port=int(os.environ.get("PORT", 7860)),
-        ssr_mode=False
-    )
+    port = int(os.environ.get("PORT", 7860))
+    uvicorn.run(app, host="0.0.0.0", port=port)
