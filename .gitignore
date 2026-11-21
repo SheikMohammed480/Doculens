@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Logs & Temporary files
+*.log
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local Environment
+.env
+.env.local
+
+# Operating System
+.DS_Store
+Thumbs.db

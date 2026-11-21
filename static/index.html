@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocuLens Enterprise AI | Document Intelligence Studio</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                            950: '#082f49',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #070b14;
+            color: #f1f5f9;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(30, 41, 59, 0.8);
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #070b14; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+
+    <!-- Global Toast Notification -->
+    <div id="toastNotification" class="hidden fixed top-5 right-5 z-50 bg-slate-900 border border-slate-700 text-white text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 transition-all">
+        <span id="toastIcon">ℹ️</span>
+        <span id="toastMessage">Notification</span>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- VIEW 1: AUTHENTICATION GATE SCREEN (DEFAULT VISIBLE INITIALLY) -->
+    <!-- ============================================================== -->
+    <div id="authGateView" class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-gradient-to-br from-[#060a12] via-[#090e1c] to-[#04070d] overflow-y-auto">
+        <!-- Ambient Glow -->
+        <div class="absolute -top-32 -left-32 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="glass-panel w-full max-w-lg rounded-3xl p-8 border border-slate-800 shadow-2xl relative z-10 space-y-6">
+            
+            <!-- Brand Header -->
+            <div class="text-center space-y-2">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center mx-auto text-2xl shadow-xl shadow-sky-500/20">
+                    🧠
+                </div>
+                <h1 class="text-xl font-extrabold text-white tracking-tight">DocuLens Enterprise Studio</h1>
+                <p class="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+                    Zero-Hallucination Hybrid RAG Document Intelligence with Role-Based Access Control (RBAC).
+                </p>
+            </div>
+
+            <!-- Tab Switcher: Sign In vs Sign Up -->
+            <div class="flex rounded-xl bg-slate-900 p-1 border border-slate-800">
+                <button id="gateTabSignInBtn" class="flex-1 py-2 text-xs font-bold rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/30 transition">
+                    🔑 Sign In
+                </button>
+                <button id="gateTabRegisterBtn" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition">
+                    📝 Register Account
+                </button>
+            </div>
+
+            <!-- Sign In Form -->
+            <form id="gateSignInForm" class="space-y-4">
+                <div>
+                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Corporate Username</label>
+                    <input type="text" id="gateLoginUsername" placeholder="e.g. admin, auditor, your_username" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 font-mono">
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Password</label>
+                    <input type="password" id="gateLoginPassword" placeholder="••••••••" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 font-mono">
+                </div>
+                <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-slate-950 text-xs font-extrabold transition shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2">
+                    <span>Authenticate & Access Studio</span>
+                    <span>→</span>
+                </button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="gateRegisterForm" class="hidden space-y-3">
+                <div>
+                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Username</label>
+                    <input type="text" id="gateRegUsername" placeholder="e.g. john_doe" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500 font-mono">
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Full Name</label>
+                    <input type="text" id="gateRegFullName" placeholder="e.g. John Doe" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Corporate Email</label>
+                    <input type="email" id="gateRegEmail" placeholder="john@enterprise.corp" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500 font-mono">
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Password</label>
+                    <input type="password" id="gateRegPassword" placeholder="••••••••" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500 font-mono">
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-[11px] text-slate-400 font-mono leading-relaxed">
+                    🔒 Security Clearance: New accounts are granted standard <b>User</b> clearance (strictly tenant-isolated to their own uploaded files).
+                </div>
+                <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-lg mt-2 flex items-center justify-center gap-2">
+                    <span>Create User Account & Issue Token</span>
+                    <span>→</span>
+                </button>
+            </form>
+
+            <!-- 1-Click Auditor Demo Profile -->
+            <div class="pt-4 border-t border-slate-800/80 space-y-2">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-center">
+                    ⚡ Fast 1-Click Testing Demo:
+                </p>
+                <button type="button" class="demo-login-btn w-full p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-center transition flex items-center justify-center gap-2 group" data-user="auditor">
+                    <span class="text-base">⚖️</span>
+                    <div class="text-left">
+                        <span class="text-xs font-bold text-amber-400 group-hover:text-white">Auditor Demo Mode (Contracts & Invoices)</span>
+                        <span class="text-[10px] text-slate-400 block">Pre-loaded with MSAs, SOWs, and Commercial Invoices</span>
+                    </div>
+                </button>
+                <p class="text-[10px] text-slate-500 text-center font-mono">System Administrator access is restricted to the pre-seeded admin account.</p>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ============================================================== -->
+    <!-- VIEW 2: MAIN STUDIO APPLICATION (UNLOCKED AFTER AUTHENTICATION) -->
+    <!-- ============================================================== -->
+    <div id="appStudioView" class="hidden h-screen flex w-full overflow-hidden">
+
+        <!-- ================= LEFT RAIL ================= -->
+        <aside class="w-80 flex-shrink-0 flex flex-col border-r border-slate-800/80 bg-slate-950/70 z-20">
+            <!-- Logo -->
+            <div class="p-5 border-b border-slate-800/80 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20 text-xl">
+                        🧠
+                    </div>
+                    <div>
+                        <h1 class="text-base font-extrabold tracking-tight text-white flex items-center gap-1.5">
+                            DocuLens <span class="text-sky-400 font-semibold text-xs px-1.5 py-0.5 rounded bg-sky-950/80 border border-sky-800/60">STUDIO</span>
+                        </h1>
+                        <p class="text-[11px] text-slate-400 font-medium">Enterprise Document Intelligence</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ingestion Dropzone -->
+            <div class="p-4 border-b border-slate-800/60">
+                <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center justify-between">
+                    <span>Upload Document</span>
+                    <span class="text-sky-400 font-mono text-[10px]">PDF ONLY</span>
+                </label>
+                <label for="fileUploadInput" class="group relative border-2 border-dashed border-slate-700/80 hover:border-sky-500/60 bg-slate-900/40 hover:bg-slate-900/80 rounded-xl p-4 text-center cursor-pointer transition-all duration-200 block">
+                    <input type="file" id="fileUploadInput" accept=".pdf" class="hidden">
+                    <div class="w-9 h-9 rounded-full bg-slate-800/80 group-hover:bg-sky-500/20 group-hover:text-sky-400 text-slate-400 mx-auto flex items-center justify-center transition text-lg">
+                        📁
+                    </div>
+                    <div class="mt-2 text-xs font-semibold text-slate-200">Upload PDF File</div>
+                    <div class="text-[10px] text-slate-400 mt-0.5">Resume, Contract, Invoice, Paper</div>
+                    <div id="uploadLoader" class="hidden mt-2 text-[11px] text-sky-400 font-medium animate-pulse">
+                        ⏳ Parsing & Indexing PDF...
+                    </div>
+                </label>
+            </div>
+
+            <!-- Document Repository List -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-2.5">
+                <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 px-1">
+                    <span>Authorized Corpus</span>
+                    <span id="docBadgeCount" class="bg-slate-800 text-sky-400 px-2 py-0.5 rounded-full text-[10px] font-mono">0 Loaded</span>
+                </div>
+                <div id="documentListContainer" class="space-y-2"></div>
+            </div>
+
+            <!-- System Architecture Telemetry Card -->
+            <div class="p-4 border-t border-slate-800/80 bg-slate-950/90 text-xs">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center justify-between">
+                    <span>Architecture Telemetry</span>
+                    <span class="inline-flex items-center gap-1 text-emerald-400 font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>RBAC ON</span>
+                </div>
+                <div class="space-y-1.5 text-[11px] font-mono text-slate-400">
+                    <div class="flex justify-between items-center bg-slate-900/60 p-1.5 rounded border border-slate-800/60">
+                        <span>LLM Engine:</span>
+                        <span id="telemetryLLM" class="text-emerald-400 font-semibold">Qwen 2.5 (CUDA GPU)</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-slate-900/60 p-1.5 rounded border border-slate-800/60">
+                        <span>Embeddings:</span>
+                        <span class="text-sky-400 font-semibold">BGE-small (384-d)</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-slate-900/60 p-1.5 rounded border border-slate-800/60">
+                        <span>Storage:</span>
+                        <span class="text-indigo-400 font-semibold">HNSW + BM25 (RRF)</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-slate-900/60 p-1.5 rounded border border-slate-800/60">
+                        <span>Reranker:</span>
+                        <span class="text-amber-400 font-semibold">Cross-Encoder BGE</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ================= MAIN STAGE ================= -->
+        <main class="flex-1 flex flex-col overflow-hidden bg-gradient-to-b from-[#0a0f1d] to-[#070b14]">
+            
+            <!-- Top Navbar -->
+            <header class="h-16 flex-shrink-0 border-b border-slate-800/80 px-8 flex items-center justify-between glass-panel z-10">
+                <div class="flex items-center space-x-2">
+                    <button id="tabBtnCopilot" class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 bg-sky-500/10 text-sky-400 border border-sky-500/30">
+                        💬 Document Copilot
+                    </button>
+                    <button id="tabBtnBenchmark" class="px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/50">
+                        📊 RAG Triad Evals
+                    </button>
+                </div>
+
+                <!-- Authenticated User Profile Display & Target Scope Selector -->
+                <div class="flex items-center space-x-3">
+                    <!-- User Profile Display -->
+                    <div class="flex items-center space-x-2 bg-slate-900/90 border border-slate-700/80 rounded-xl px-3 py-1.5 shadow-inner">
+                        <span class="text-xs text-slate-400">👤 User:</span>
+                        <span id="navUserName" class="text-xs font-bold text-sky-300 font-mono">Loading...</span>
+                        <span id="currentUserRoleBadge" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-950 text-sky-400 border border-sky-800">USER</span>
+                    </div>
+
+                    <!-- Document Scope Filter -->
+                    <div class="flex items-center space-x-2 bg-slate-900/80 border border-slate-700/80 rounded-lg px-3 py-1.5">
+                        <span class="text-xs text-slate-400">🎯 Filter Scope:</span>
+                        <select id="docScopeSelect" class="bg-transparent text-xs font-medium text-white focus:outline-none cursor-pointer">
+                            <option value="All Documents">All Authorized Documents</option>
+                        </select>
+                    </div>
+
+                    <button id="quickBenchmarkBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-md transition flex items-center gap-1.5">
+                        ⚡ Evals
+                    </button>
+
+                    <!-- Sign Out Button -->
+                    <button id="signOutBtn" class="bg-rose-950/40 hover:bg-rose-900/70 text-rose-300 hover:text-white text-xs font-semibold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-rose-800/80">
+                        🚪 Sign Out
+                    </button>
+                </div>
+            </header>
+
+            <!-- View 1: Document Copilot / QA Studio -->
+            <div id="viewCopilot" class="flex-1 flex flex-col overflow-hidden p-8 max-w-6xl w-full mx-auto space-y-6">
+                
+                <!-- Suggested Prompts -->
+                <div>
+                    <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
+                        ✨ Suggested Inquiries (Click any chip to run immediately):
+                    </p>
+                    <div class="flex flex-wrap gap-2" id="suggestedChipsContainer">
+                        <button class="chip-btn px-3 py-1.5 rounded-lg bg-slate-900/70 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 hover:text-white transition flex items-center gap-1.5" data-query="what are the project he has done ?">
+                            <span>🛠️</span> Candidate Projects Summary
+                        </button>
+                        <button class="chip-btn px-3 py-1.5 rounded-lg bg-slate-900/70 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 hover:text-white transition flex items-center gap-1.5" data-query="Is candidate Sheik Mohammed fluent in English or Tamil?">
+                            <span>🗣️</span> Candidate Language Fluency
+                        </button>
+                        <button class="chip-btn px-3 py-1.5 rounded-lg bg-slate-900/70 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 hover:text-white transition flex items-center gap-1.5" data-query="Give me a professional summary of Sheik Mohammed, his technical skills, and experience.">
+                            <span>👤</span> Technical Skills & Summary
+                        </button>
+                        <button class="chip-btn px-3 py-1.5 rounded-lg bg-rose-950/30 hover:bg-rose-950/50 border border-rose-900/50 text-xs text-rose-300 hover:text-rose-200 transition flex items-center gap-1.5" data-query="Does Invoice INV-2024-099 comply with the late fee and milestone budget terms in the MSA and SOW?">
+                            <span>🚨</span> Audit Discrepancies in INV-099
+                        </button>
+                        <button class="chip-btn px-3 py-1.5 rounded-lg bg-slate-900/70 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 hover:text-white transition flex items-center gap-1.5" data-query="What is the maximum aggregate liability cap under the MSA, and which claims are uncapped?">
+                            <span>⚖️</span> Liability Caps & Indemnity
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Big Search Input Bar -->
+                <div class="relative">
+                    <div class="glass-panel rounded-2xl p-2.5 shadow-2xl flex items-center border border-slate-700/80 focus-within:border-sky-500/80 focus-within:ring-2 focus-within:ring-sky-500/20 transition-all">
+                        <div class="pl-3 pr-2 text-slate-400 text-base">🔍</div>
+                        <input type="text" id="mainQueryInput" 
+                               placeholder="Ask anything about any authorized document (skills, numbers, dates, contract clauses, terms)..." 
+                               value="what are the project he has done ?"
+                               class="flex-1 bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none px-2 py-2">
+                        <button id="askCopilotBtn" class="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-slate-950 font-extrabold text-xs px-6 py-3 rounded-xl shadow-lg transition flex items-center gap-2">
+                            <span id="askBtnText">Ask Copilot</span>
+                            <span>→</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Response Stage -->
+                <div class="flex-1 overflow-y-auto space-y-5 pb-6" id="chatStreamContainer">
+                    
+                    <!-- Active Answer Card -->
+                    <div id="answerCard" class="glass-panel rounded-2xl p-6 shadow-xl border border-slate-800 space-y-5">
+                        
+                        <!-- Header with Status Badge -->
+                        <div class="flex items-center justify-between pb-4 border-b border-slate-800/80">
+                            <div class="flex items-center space-x-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-base">
+                                    ✨
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-white">Synthesized Grounded Intelligence</h3>
+                                    <p class="text-[11px] text-slate-400 font-mono" id="modelInferenceTag">Engine: Qwen 2.5 (CUDA GPU) • Zero Hallucination Mode</p>
+                                </div>
+                            </div>
+                            <div id="statusBadge" class="hidden text-xs font-extrabold px-3.5 py-1 rounded-full uppercase tracking-wider"></div>
+                        </div>
+
+                        <!-- Synthesized Answer Body -->
+                        <div id="answerContent" class="text-slate-200 text-sm leading-relaxed whitespace-pre-line font-medium">
+                            Select any suggested prompt above or type your question to start analyzing documents.
+                        </div>
+
+                        <!-- Verified Citation Pills -->
+                        <div id="citationPillsSection" class="hidden pt-4 border-t border-slate-800/80">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
+                                📌 Verified Citations (Click pill to preview source text):
+                            </p>
+                            <div id="citationsPillContainer" class="flex flex-wrap gap-2"></div>
+                        </div>
+
+                        <!-- Deep Evidence Drawer -->
+                        <div id="evidenceSection" class="hidden pt-4 border-t border-slate-800/80">
+                            <details class="group">
+                                <summary class="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-slate-400 cursor-pointer hover:text-white select-none">
+                                    <span class="flex items-center gap-2">📑 Ranked Evidence Passages (<span id="evidenceCount">0</span> Chunks)</span>
+                                    <span class="group-open:rotate-180 transition-transform">▼</span>
+                                </summary>
+                                <div id="evidencePassagesList" class="mt-3 space-y-2.5"></div>
+                            </details>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- View 2: Live RAG Triad Benchmark Dashboard -->
+            <div id="viewBenchmark" class="hidden flex-1 overflow-y-auto p-8 max-w-6xl w-full mx-auto space-y-6">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-white">Automated RAG Triad Evaluation Benchmark</h2>
+                        <p class="text-xs text-slate-400">CI/CD Quality Verification & Regression Gate</p>
+                    </div>
+                    <button id="reRunBenchmarkBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition flex items-center gap-1.5">
+                        🔄 Re-Run Evaluation Suite
+                    </button>
+                </div>
+
+                <!-- 4 Metric KPI Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="glass-panel p-5 rounded-2xl border border-slate-800 text-center">
+                        <div class="text-xs font-bold uppercase text-slate-400">Faithfulness</div>
+                        <div id="kpiFaithfulness" class="text-3xl font-extrabold text-emerald-400 mt-2">100.0%</div>
+                        <div class="text-[10px] text-slate-400 mt-1">Zero Hallucination Rate</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-2xl border border-slate-800 text-center">
+                        <div class="text-xs font-bold uppercase text-slate-400">Context Recall</div>
+                        <div id="kpiRecall" class="text-3xl font-extrabold text-sky-400 mt-2">100.0%</div>
+                        <div class="text-[10px] text-slate-400 mt-1">Ground Truth Retrieval Hit Rate</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-2xl border border-slate-800 text-center">
+                        <div class="text-xs font-bold uppercase text-slate-400">Citation Precision</div>
+                        <div id="kpiPrecision" class="text-3xl font-extrabold text-indigo-400 mt-2">100.0%</div>
+                        <div class="text-[10px] text-slate-400 mt-1">Source Page & Clause Match</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-2xl border border-slate-800 text-center">
+                        <div class="text-xs font-bold uppercase text-slate-400">Dispute Detection</div>
+                        <div id="kpiDispute" class="text-3xl font-extrabold text-amber-400 mt-2">100.0%</div>
+                        <div class="text-[10px] text-slate-400 mt-1">Contract Overcharge Catch Rate</div>
+                    </div>
+                </div>
+
+                <!-- Detailed Test Cases Table -->
+                <div class="glass-panel rounded-2xl p-6 border border-slate-800">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Evaluation Test Suite Breakdown</h3>
+                    <div id="benchmarkDetailsTable" class="space-y-3"></div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Slide-Out Document Excerpt Inspector Drawer -->
+        <div id="drawerBackdrop" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"></div>
+        <div id="documentDrawer" class="fixed right-0 top-0 bottom-0 w-[500px] glass-panel bg-slate-950/95 border-l border-slate-800 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col p-6">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                <div>
+                    <h3 id="drawerDocTitle" class="text-sm font-bold text-white">Document Excerpt</h3>
+                    <p id="drawerDocPage" class="text-xs text-sky-400 font-mono">Page 1</p>
+                </div>
+                <button id="closeDrawerBtn" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 text-lg">
+                    ✕
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto mt-4">
+                <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 block">Source Text on Target Page:</label>
+                <div id="drawerDocText" class="p-4 bg-slate-900 rounded-xl border border-slate-800 text-xs text-slate-300 font-mono leading-relaxed whitespace-pre-wrap"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- External Clean JavaScript Controller -->
+    <script src="/static/app.js"></script>
+</body>
+</html>
