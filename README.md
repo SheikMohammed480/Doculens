@@ -1,12 +1,14 @@
 ---
 title: Doculens
-emoji: 🔍
-colorFrom: blue
-colorTo: indigo
+emoji: 🐨
+colorFrom: green
+colorTo: purple
 sdk: gradio
-sdk_version: 5.9.1
+sdk_version: 6.32.0
+python_version: '3.12'
 app_file: app.py
 pinned: false
+license: mit
 ---
 
 # DocuLens Lex & Ledger: Open-Weight Document Intelligence Platform
