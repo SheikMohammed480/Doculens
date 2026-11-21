@@ -128,6 +128,21 @@ py -3.10 -m streamlit run streamlit_app.py --server.port 8501
 
 ---
 
+## 🚀 Live Cloud Deployment & Production Links
+
+The platform is deployed live on **Hugging Face Spaces** (Free Cloud Tier, Zero API Keys, Zero Laptop Hardware):
+
+- **🌐 Live Production Studio**: [https://sheik11111-doculens.hf.space/static/index.html](https://sheik11111-doculens.hf.space/static/index.html)
+- **🤗 Hugging Face Space**: [https://huggingface.co/spaces/sheik11111/Doculens](https://huggingface.co/spaces/sheik11111/Doculens)
+- **📖 Comprehensive Deployment & Troubleshooting Guide**: See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) for full documentation on platform choices, model runtime details, and the 6 engineering challenges resolved during deployment.
+
+### 🔐 Multi-Tenant Login Credentials
+- **System Admin**: `admin` / `admin123` (Full clearance across all documents and evaluation benchmarks)
+- **Auditor (1-Click Demo)**: `auditor` / `auditor123` (Pre-seeded with commercial contracts and disputed invoices)
+- **New User**: Click "Register" to create an isolated personal workspace.
+
+---
+
 ## 📁 Repository Structure
 
 ```
