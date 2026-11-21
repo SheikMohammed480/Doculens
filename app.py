@@ -233,6 +233,29 @@ def get_system_status():
         "security": "Role-Based Access Control (RBAC) & Tenant Isolation Active"
     }
 
+@app.get("/api/local-ollama/status")
+def get_local_ollama_status():
+    """Detects local Ollama instance and lists installed models."""
+    import urllib.request, json
+    try:
+        req = urllib.request.Request(f"{generator.ollama_url}/api/tags")
+        with urllib.request.urlopen(req, timeout=2) as resp:
+            data = json.loads(resp.read().decode())
+            models = [m.get("name") for m in data.get("models", [])]
+            return {
+                "active": True,
+                "models": models,
+                "active_model": generator.active_model,
+                "ollama_url": generator.ollama_url
+            }
+    except Exception as e:
+        return {
+            "active": False,
+            "models": [],
+            "active_model": generator.active_model,
+            "error": str(e)
+        }
+
 @app.get("/api/documents")
 def get_documents(current_user: Dict[str, Any] = Depends(get_current_user)):
     permitted_files = set(auth_mgr.get_user_permitted_documents(current_user["id"], current_user["role"]))

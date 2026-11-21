@@ -15,7 +15,7 @@ import webbrowser
 
 OLLAMA_HOST = "http://127.0.0.1:11434"
 DEFAULT_MODEL = "qwen2.5:1.5b"
-PORT = 8000
+PORT = 7860
 
 def find_ollama_binary():
     """Locates the Ollama executable on Windows, macOS, or Linux."""

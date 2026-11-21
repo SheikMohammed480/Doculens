@@ -748,7 +748,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// Detect Local Ollama via Client Browser
+// Detect Local Ollama via Backend API or Client Browser
 async function detectLocalOllama(showNotification = true) {
     const statusBox = document.getElementById("localOllamaStatusBox");
     const statusLabel = document.getElementById("localModelStatusLabel");
@@ -756,33 +756,68 @@ async function detectLocalOllama(showNotification = true) {
 
     if (statusBox) {
         statusBox.className = "p-3.5 rounded-xl border border-sky-800 bg-sky-950/60 text-sky-300 text-[11px] font-mono";
-        statusBox.innerHTML = "⏳ Probing http://localhost:11434...";
+        statusBox.innerHTML = "⏳ Probing local Ollama service...";
         statusBox.classList.remove("hidden");
     }
 
+    // 1. Try probing via backend proxy endpoint first (avoids browser Mixed Content blocks)
+    try {
+        const backendRes = await fetch("/api/local-ollama/status");
+        if (backendRes.ok) {
+            const bData = await backendRes.json();
+            if (bData.active && bData.models && bData.models.length > 0) {
+                const activeM = bData.active_model || bData.models[0];
+                if (statusBox) {
+                    statusBox.className = "p-3.5 rounded-xl border border-emerald-800 bg-emerald-950/80 text-emerald-300 text-[11px] font-mono leading-relaxed";
+                    statusBox.innerHTML = `✅ <b>Local Ollama Connected!</b><br>• Active Model: <span class="text-white font-bold">${escapeHtml(activeM)}</span><br>• Installed Models: <span class="text-sky-300">${bData.models.map(escapeHtml).join(', ')}</span><br>• Execution: <b>NVIDIA CUDA GPU / CPU</b><br>• Zero Cloud Cost • Zero API Keys`;
+                }
+                if (statusLabel) statusLabel.innerText = `🟢 Local: ${activeM}`;
+                if (telemetryLLM) telemetryLLM.innerText = `Local ${activeM} (NVIDIA CUDA GPU)`;
+                localStorage.setItem("doculens_use_local_ollama", "true");
+                localStorage.setItem("doculens_local_model_name", activeM);
+                if (showNotification) showToast(`Local AI connected: ${activeM}`, true);
+                return true;
+            }
+        }
+    } catch (_) {}
+
+    // 2. Try direct client browser fetch to http://localhost:11434/api/tags
     try {
         const res = await fetch("http://localhost:11434/api/tags", { method: "GET" });
-        if (!res.ok) throw new Error("Status " + res.status);
-        const data = await res.json();
-        const models = (data.models || []).map(m => m.name);
-        const activeModel = models.find(m => m.includes("qwen")) || models[0] || "qwen2.5:1.5b";
+        if (res.ok) {
+            const data = await res.json();
+            const models = (data.models || []).map(m => m.name);
+            const activeModel = models.find(m => m.includes("qwen")) || models[0] || "qwen2.5:1.5b";
 
-        if (statusBox) {
-            statusBox.className = "p-3.5 rounded-xl border border-emerald-800 bg-emerald-950/80 text-emerald-300 text-[11px] font-mono";
-            statusBox.innerHTML = `✅ Connected to Local Laptop!<br>• Active Model: <b>${activeModel}</b><br>• Available Models: ${models.join(', ') || 'None'}<br>• Status: 100% Ready for Local GPU/CPU inference!`;
+            if (statusBox) {
+                statusBox.className = "p-3.5 rounded-xl border border-emerald-800 bg-emerald-950/80 text-emerald-300 text-[11px] font-mono leading-relaxed";
+                statusBox.innerHTML = `✅ <b>Connected to Local Laptop!</b><br>• Active Model: <span class="text-white font-bold">${escapeHtml(activeModel)}</span><br>• Installed Models: <span class="text-sky-300">${models.map(escapeHtml).join(', ')}</span><br>• Status: 100% Ready for Local GPU/CPU inference!`;
+            }
+
+            if (statusLabel) statusLabel.innerText = `🟢 Local: ${activeModel}`;
+            if (telemetryLLM) telemetryLLM.innerText = `Local ${activeModel} (Laptop GPU/CPU)`;
+
+            localStorage.setItem("doculens_use_local_ollama", "true");
+            localStorage.setItem("doculens_local_model_name", activeModel);
+            if (showNotification) showToast(`Local AI connected: ${activeModel}`, true);
+            return true;
         }
-
-        if (statusLabel) statusLabel.innerText = `🟢 Local: ${activeModel}`;
-        if (telemetryLLM) telemetryLLM.innerText = `Local ${activeModel} (Laptop GPU/CPU)`;
-
-        localStorage.setItem("doculens_use_local_ollama", "true");
-        localStorage.setItem("doculens_local_model_name", activeModel);
-        if (showNotification) showToast(`Local AI connected: ${activeModel}`, true);
-        return true;
     } catch (e) {
+        // Handle Browser HTTPS Mixed-Content block when on remote cloud
+        const isHttpsCloud = window.location.protocol === "https:";
         if (statusBox) {
-            statusBox.className = "p-3.5 rounded-xl border border-amber-800 bg-amber-950/80 text-amber-300 text-[11px] font-mono";
-            statusBox.innerHTML = `⚠️ Could not reach http://localhost:11434.<br>1. Download and run <b>setup_local_model.bat</b>.<br>2. Keep the Ollama terminal window open.<br>3. Click Detect again.`;
+            statusBox.className = "p-3.5 rounded-xl border border-amber-800 bg-amber-950/90 text-amber-200 text-[11px] font-mono leading-relaxed space-y-1.5";
+            if (isHttpsCloud) {
+                statusBox.innerHTML = `
+                    <div class="font-bold text-amber-400">🔒 Browser Security Notice (Mixed Content)</div>
+                    <div>You are viewing the remote cloud link (<b>${escapeHtml(window.location.hostname)}</b>). Chrome blocks secure HTTPS websites from reading private <code class="text-sky-300">http://localhost:11434</code>.</div>
+                    <div class="pt-1 text-emerald-300"><b>👉 To use your laptop's GPU & models directly:</b><br>
+                    Open your local dashboard: <a href="http://127.0.0.1:8000/static/index.html" target="_blank" class="underline font-bold text-sky-400">http://127.0.0.1:8000/static/index.html</a><br>
+                    <i>(Already active and running on your machine with CUDA GPU!)</i></div>
+                `;
+            } else {
+                statusBox.innerHTML = `⚠️ Could not reach http://localhost:11434.<br>1. Download and run <b>setup_local_model.bat</b>.<br>2. Keep the Ollama terminal window open.<br>3. Click Detect again.`;
+            }
         }
         localStorage.removeItem("doculens_use_local_ollama");
         return false;
