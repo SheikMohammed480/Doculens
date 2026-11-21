@@ -18,15 +18,20 @@ class OpenWeightGenerator:
         self.ollama_url = raw_url
         self.groq_api_key = os.environ.get("GROQ_API_KEY", "")
         self.groq_model = os.environ.get("GROQ_MODEL", "qwen-2.5-32b")
+        self.hf_token = os.environ.get("HF_TOKEN", "")
+        self.hf_model = os.environ.get("HF_MODEL", "Qwen/Qwen2.5-7B-Instruct")
         self.active_model = self._detect_available_model() or ollama_model
         self.ollama_model = self.active_model
 
     def _detect_available_model(self) -> str:
         """
         Dynamically detects available open-weight models:
-        1. If GROQ_API_KEY is configured in cloud environment, uses Groq open-weight models.
-        2. Otherwise detects installed local Ollama models (qwen2.5:1.5b / qwen2.5:3b / llama3.2).
+        1. If HF_TOKEN is configured in Hugging Face Space secrets, uses HF Serverless GPU.
+        2. If GROQ_API_KEY is configured in cloud environment, uses Groq open-weight models.
+        3. Otherwise detects installed local Ollama models (qwen2.5:1.5b / qwen2.5:3b / llama3.2).
         """
+        if self.hf_token:
+            return f"Hugging Face Free GPU: {self.hf_model}"
         if self.groq_api_key:
             return f"Groq Cloud: {self.groq_model}"
 
@@ -128,7 +133,33 @@ class OpenWeightGenerator:
             f"Direct Answer with Citations:"
         )
 
-        # 1. Cloud-Native Option: Groq Free Open-Weight API (when deployed to cloud)
+        # 1. Hugging Face Free Serverless Inference (when deployed on HF Spaces with HF_TOKEN)
+        if self.hf_token:
+            try:
+                hf_payload = {
+                    "model": self.hf_model,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_content}
+                    ],
+                    "temperature": 0.1,
+                    "max_tokens": 450
+                }
+                req = urllib.request.Request(
+                    "https://router.huggingface.co/hf-inference/v1/chat/completions",
+                    data=json.dumps(hf_payload).encode("utf-8"),
+                    headers={
+                        "Content-Type": "application/json",
+                        "Authorization": f"Bearer {self.hf_token}"
+                    }
+                )
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    data = json.loads(resp.read().decode())
+                    return data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+            except Exception:
+                pass
+
+        # 2. Cloud-Native Option: Groq Free Open-Weight API (when deployed to cloud)
         if self.groq_api_key:
             try:
                 groq_payload = {

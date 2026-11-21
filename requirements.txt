@@ -4,6 +4,8 @@ uvicorn[standard]>=0.30.0
 pydantic>=2.7.0
 python-multipart>=0.0.9
 pyjwt>=2.8.0
+gradio>=5.0.0
+huggingface_hub>=0.23.0
 
 # Document Ingestion & Table Extraction
 pdfplumber>=0.11.0
