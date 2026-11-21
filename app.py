@@ -412,12 +412,19 @@ try:
 except Exception as e:
     MODERN_UI_PAGE = "<h1>DocuLens Studio loading error</h1>"
 
-with gr.Blocks(title="DocuLens Enterprise AI Studio", fill_height=True, fill_width=True) as demo:
-    gr.HTML("""
-    <div style="width: 100vw; height: 100vh; margin: 0; padding: 0; overflow: hidden; position: fixed; top: 0; left: 0; z-index: 999999;">
-        <iframe src="/modern" style="width: 100%; height: 100%; border: none; display: block;" allow="clipboard-read; clipboard-write"></iframe>
-    </div>
-    """)
+custom_css = """
+.gradio-container {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #070b14 !important;
+}
+footer { display: none !important; }
+"""
+
+with gr.Blocks(title="DocuLens Enterprise AI Studio", css=custom_css, fill_height=True, fill_width=True) as demo:
+    gr.HTML(MODERN_UI_PAGE)
+
     # Hidden components to register with ZeroGPU scanner
     with gr.Row(visible=False):
         _dummy_in = gr.Textbox(visible=False)
@@ -425,8 +432,9 @@ with gr.Blocks(title="DocuLens Enterprise AI Studio", fill_height=True, fill_wid
         _dummy_out = gr.Textbox(visible=False)
         _dummy_btn.click(gradio_query, inputs=[_dummy_in, _dummy_in], outputs=[_dummy_out, _dummy_out, _dummy_out])
 
+@demo.app.get("/studio")
 @demo.app.get("/modern")
-def serve_modern():
+def serve_studio_direct():
     from fastapi.responses import HTMLResponse
     return HTMLResponse(MODERN_UI_PAGE)
 
