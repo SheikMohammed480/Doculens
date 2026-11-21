@@ -77,8 +77,7 @@ class AuthManager:
     def _seed_default_users_and_permissions(self):
         default_users = [
             ("usr-admin", "admin", "System Administrator", "admin@doculens.corp", "admin123", "admin", "IT & Governance"),
-            ("usr-auditor", "auditor", "Legal & Financial Auditor", "auditor@doculens.corp", "auditor123", "auditor", "Finance"),
-            ("usr-sheik", "sheik", "Sheik Mohammed", "sheik@doculens.corp", "sheik123", "user", "Engineering")
+            ("usr-auditor", "auditor", "Legal & Financial Auditor", "auditor@doculens.corp", "auditor123", "auditor", "Finance")
         ]
 
         with self._get_connection() as conn:
@@ -95,7 +94,6 @@ class AuthManager:
 
             # Seed permissions for sample documents
             doc_rules = [
-                ("Sheik_Mohammed_Resume.pdf", "usr-sheik", 0, "admin"),
                 ("MSA_Acme_Cyberdyne_2024.pdf", "usr-auditor", 0, "admin,auditor"),
                 ("SOW_Cloud_Infrastructure.pdf", "usr-auditor", 0, "admin,auditor"),
                 ("INV_2024_081_Compliant.pdf", "usr-auditor", 0, "admin,auditor"),

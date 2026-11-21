@@ -98,8 +98,7 @@ function updateProfileUI(user) {
 async function switchDemoUser(username) {
     const passwords = {
         'admin': 'admin123',
-        'auditor': 'auditor123',
-        'sheik': 'sheik123'
+        'auditor': 'auditor123'
     };
     const password = passwords[username] || 'admin123';
 

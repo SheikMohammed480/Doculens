@@ -1,7 +1,7 @@
 """
 DocuLens AI Studio: Production-Grade Enterprise Document Intelligence & RAG.
 A state-of-the-art UI for multi-modal document understanding, contract auditing,
-invoice reconciliation, and candidate resume intelligence.
+commercial invoice reconciliation, and compliance verification with verified citations.
 """
 
 import os
@@ -164,21 +164,19 @@ user_option = st.sidebar.selectbox(
     "👤 Active User Identity (RBAC):",
     [
         "⚖️ Auditor (Demo Testing Account - Contracts & Invoices)",
-        "👑 Admin (Single Master Admin Account - All Documents)",
-        "👤 Sheik (User Account - Personal Resume)"
+        "👑 Admin (Single Master Admin Account - All Documents)"
     ]
 )
 user_role_map = {
     "⚖️ Auditor (Demo Testing Account - Contracts & Invoices)": ("usr-auditor", "auditor"),
-    "👑 Admin (Single Master Admin Account - All Documents)": ("usr-admin", "admin"),
-    "👤 Sheik (User Account - Personal Resume)": ("usr-sheik", "user")
+    "👑 Admin (Single Master Admin Account - All Documents)": ("usr-admin", "admin")
 }
 active_user_id, active_role = user_role_map[user_option]
 permitted_docs = set(auth_mgr.get_user_permitted_documents(active_user_id, active_role))
 
 st.sidebar.markdown("### 📤 Upload Documents")
 uploaded_files = st.sidebar.file_uploader(
-    "Upload any PDF (Resume, Contract, Manual, Invoice, Paper):",
+    "Upload any PDF (Contracts, Invoices, Statements of Work, Specs):",
     type=["pdf"],
     accept_multiple_files=True
 )
@@ -218,7 +216,7 @@ st.markdown("""
             Enterprise Document <span style="background:linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">Intelligence Studio</span>
         </h1>
         <p style="color:#94a3b8; font-size:0.95rem; margin-top:4px;">
-            High-precision multi-document synthesis, legal clause auditing, invoice reconciliation, and resume reasoning with verified citations.
+            High-precision multi-document synthesis, legal clause auditing, invoice reconciliation, and compliance verification with verified citations.
         </p>
     </div>
 </div>
@@ -242,21 +240,21 @@ p_col1, p_col2, p_col3, p_col4 = st.columns(4)
 
 preset_query = None
 with p_col1:
-    if st.button("🗣️ Candidate Language Fluency", use_container_width=True):
-        preset_query = "Is candidate Sheik Mohammed fluent in English or Tamil?"
-with p_col2:
-    if st.button("👤 Technical Skills & Summary", use_container_width=True):
-        preset_query = "Give me a professional summary of Sheik Mohammed's experience and top engineering skills."
-with p_col3:
     if st.button("🚨 Audit Invoice #099 vs MSA", use_container_width=True):
         preset_query = "Does Invoice INV-2024-099 comply with the late fee and milestone budget terms in the MSA and SOW?"
-with p_col4:
+with p_col2:
     if st.button("⚖️ Liability Cap & Indemnity", use_container_width=True):
         preset_query = "What is the maximum aggregate liability cap under the MSA, and which claims are uncapped?"
+with p_col3:
+    if st.button("📋 SOW Deliverables & Roles", use_container_width=True):
+        preset_query = "What are the key deliverables, milestones, and staffing roles defined in the Cloud Infrastructure SOW?"
+with p_col4:
+    if st.button("🧾 Invoice Line Items & Total", use_container_width=True):
+        preset_query = "Can you list out the invoice date, invoice number, items list, total price, and due date from the invoice?"
 
 
 # ================= QUERY INPUT SECTION =================
-default_text = preset_query if preset_query else "Is candidate Sheik Mohammed fluent in English or Tamil?"
+default_text = preset_query if preset_query else "Does Invoice INV-2024-099 comply with the late fee and milestone budget terms in the MSA and SOW?"
 
 query_col, btn_col = st.columns([5, 1])
 with query_col:
