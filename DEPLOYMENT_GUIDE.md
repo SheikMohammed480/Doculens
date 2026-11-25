@@ -178,3 +178,34 @@ FINAL RESULT: 10/10 Enterprise Questions Passed on Evaluation Harness!
 | **System Admin** | `admin` | `admin123` | Full access across all 5 corpus documents & evaluation benchmarks |
 | **Auditor (1-Click Demo)** | `auditor` | `auditor123` | Access to legal MSAs, SOWs, and Commercial Invoices |
 | **New Public User** | Custom | Custom | Self-registration via modal; strictly tenant-isolated to own uploads |
+
+---
+
+## 🚀 Deploying to Render (Free Cloud Hosting)
+
+DocuLens is fully pre-configured for deployment on [Render](https://render.com) using native Python with `render.yaml` and `Procfile`.
+
+### Method 1: Render Blueprints (1-Click via `render.yaml`)
+1. Go to your [Render Dashboard](https://dashboard.render.com).
+2. Click **New +** → **Blueprint**.
+3. Connect your repository `https://github.com/SheikMohammed480/Doculens.git`.
+4. Render detects `render.yaml` automatically.
+5. In the environment variable prompt, enter your `GROQ_API_KEY`:
+   - `GROQ_API_KEY`: `<your_groq_api_key>`
+6. Click **Apply**. Your app builds in ~60 seconds and goes live on a public `https://<service-name>.onrender.com` URL.
+
+### Method 2: Manual Web Service
+1. On [Render](https://dashboard.render.com), click **New +** → **Web Service**.
+2. Connect your GitHub repository `Doculens`.
+3. Fill in the following fields:
+   - **Name**: `doculens-rag`
+   - **Runtime**: `Python 3`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn app:app --host 0.0.0.0 --port $PORT`
+   - **Instance Type**: `Free`
+4. Under **Environment Variables**, click **Add Environment Variable**:
+   - `GROQ_API_KEY`: `<your_groq_api_key>`
+   - `GROQ_MODEL`: `qwen/qwen3.8-27b`
+   - `PYTHON_VERSION`: `3.10.12`
+5. Click **Create Web Service**. Your app is live with high-speed Groq LPU inference!
+

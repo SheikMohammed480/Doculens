@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: doculens-enterprise-rag
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: qwen/qwen3.8-27b
+      - key: PYTHON_VERSION
+        value: 3.10.12
