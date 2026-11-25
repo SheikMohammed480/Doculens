@@ -17,7 +17,7 @@ class OpenWeightGenerator:
             raw_url = f"http://{raw_url}"
         self.ollama_url = raw_url
         self.groq_api_key = os.environ.get("GROQ_API_KEY", "")
-        self.groq_model = os.environ.get("GROQ_MODEL", "qwen-2.5-32b")
+        self.groq_model = os.environ.get("GROQ_MODEL", "qwen/qwen3.8-27b")
         self.hf_token = os.environ.get("HF_TOKEN", "")
         self.hf_model = os.environ.get("HF_MODEL", "Qwen/Qwen2.5-7B-Instruct")
         self.active_model = self._detect_available_model() or ollama_model
@@ -131,7 +131,42 @@ class OpenWeightGenerator:
             f"Direct Answer with Citations:"
         )
 
-        # 1. Local-Native Option: Local Ollama on CUDA GPU / CPU (when running on host)
+        # 1. Cloud-Native Option: Groq Free Open-Weight API (when deployed to cloud or GROQ_API_KEY set)
+        if self.groq_api_key:
+            candidate_models = []
+            for m in [self.groq_model, "qwen/qwen3.8-27b", "openai/gpt-oss-120b", "allam-2-7b"]:
+                if m and m not in candidate_models:
+                    candidate_models.append(m)
+
+            for gm in candidate_models:
+                try:
+                    groq_payload = {
+                        "model": gm,
+                        "messages": [
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_content}
+                        ],
+                        "temperature": 0.1,
+                        "max_tokens": 450
+                    }
+                    req = urllib.request.Request(
+                        "https://api.groq.com/openai/v1/chat/completions",
+                        data=json.dumps(groq_payload).encode("utf-8"),
+                        headers={
+                            "Content-Type": "application/json",
+                            "Authorization": f"Bearer {self.groq_api_key}",
+                            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                        }
+                    )
+                    with urllib.request.urlopen(req, timeout=12) as resp:
+                        data = json.loads(resp.read().decode())
+                        ans = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+                        if ans:
+                            return ans
+                except Exception:
+                    continue
+
+        # 2. Local-Native Option: Local Ollama on CUDA GPU / CPU (when running on host / run_local.py)
         payload = {
             "model": self.active_model if "qwen" in self.active_model or "llama" in self.active_model else "qwen2.5:1.5b",
             "messages": [
@@ -153,41 +188,13 @@ class OpenWeightGenerator:
                 data=json.dumps(payload).encode("utf-8"),
                 headers={"Content-Type": "application/json"}
             )
-            with urllib.request.urlopen(req, timeout=45) as resp:
+            with urllib.request.urlopen(req, timeout=15) as resp:
                 data = json.loads(resp.read().decode())
                 ans = data.get("message", {}).get("content", "").strip()
                 if ans:
                     return ans
         except Exception:
             pass
-
-        # 2. Cloud-Native Option: Groq Free Open-Weight API (when deployed to cloud)
-        if self.groq_api_key:
-            try:
-                groq_payload = {
-                    "model": self.groq_model,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_content}
-                    ],
-                    "temperature": 0.1,
-                    "max_tokens": 450
-                }
-                req = urllib.request.Request(
-                    "https://api.groq.com/openai/v1/chat/completions",
-                    data=json.dumps(groq_payload).encode("utf-8"),
-                    headers={
-                        "Content-Type": "application/json",
-                        "Authorization": f"Bearer {self.groq_api_key}"
-                    }
-                )
-                with urllib.request.urlopen(req, timeout=15) as resp:
-                    data = json.loads(resp.read().decode())
-                    ans = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
-                    if ans:
-                        return ans
-            except Exception:
-                pass
 
         # 3. Hugging Face Inference
         if self.hf_token:

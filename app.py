@@ -222,6 +222,7 @@ def serve_enterprise_ui():
 
 @app.get("/api/system-status")
 def get_system_status():
+    device_desc = "Groq LPU Cloud Accelerator" if generator.groq_api_key else "NVIDIA CUDA GPU / Local CPU"
     return {
         "llm_engine": generator.active_model,
         "embeddings": "BAAI/bge-small-en-v1.5 (384-d)",
@@ -229,7 +230,7 @@ def get_system_status():
         "reranker": "BAAI/bge-reranker-base (Cross-Encoder)",
         "documents_count": len(store.documents),
         "total_chunks": len(store.child_chunks),
-        "device": "NVIDIA CUDA GPU",
+        "device": device_desc,
         "security": "Role-Based Access Control (RBAC) & Tenant Isolation Active"
     }
 
