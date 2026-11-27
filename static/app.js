@@ -65,9 +65,21 @@ function exitStudio() {
 
     const gateView = document.getElementById('authGateView');
     const studioView = document.getElementById('appStudioView');
+    const tabSignIn = document.getElementById('gateTabSignInBtn');
+    const tabRegister = document.getElementById('gateTabRegisterBtn');
+    const signInForm = document.getElementById('gateSignInForm');
+    const registerForm = document.getElementById('gateRegisterForm');
 
     if (studioView) studioView.classList.add('hidden');
     if (gateView) gateView.classList.remove('hidden');
+
+    // Always reset to Sign In tab on logout so user is not stuck on the Register form
+    if (tabSignIn && tabRegister && signInForm && registerForm) {
+        tabSignIn.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/30 transition';
+        tabRegister.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition';
+        signInForm.classList.remove('hidden');
+        registerForm.classList.add('hidden');
+    }
 
     showToast('Signed out. Please sign in or register to access confidential files.', false);
 }
@@ -605,6 +617,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 currentAuthToken = data.token;
                 localStorage.setItem('doculens_jwt', data.token);
 
+                const loginUserEl = document.getElementById('gateLoginUsername');
+                if (loginUserEl) loginUserEl.value = username;
+
                 enterStudio(data.user);
             } catch (err) {
                 showToast(`Sign In Error: ${err.message}`, false);
@@ -631,6 +646,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 currentAuthToken = data.token;
                 localStorage.setItem('doculens_jwt', data.token);
+
+                const loginUserEl = document.getElementById('gateLoginUsername');
+                if (loginUserEl) loginUserEl.value = username;
 
                 enterStudio(data.user);
             } catch (err) {

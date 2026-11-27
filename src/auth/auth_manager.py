@@ -167,7 +167,7 @@ class AuthManager:
         username = username.strip().lower()
         with self._get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+            cursor.execute("SELECT * FROM users WHERE username = ? OR email = ?", (username, username))
             row = cursor.fetchone()
             if not row:
                 return None
