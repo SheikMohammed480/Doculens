@@ -83,14 +83,24 @@ class AuthManager:
         with self._get_connection() as conn:
             cursor = conn.cursor()
             for uid, uname, fname, email, pwd, role, dept in default_users:
-                cursor.execute("SELECT id FROM users WHERE username = ?", (uname,))
-                if not cursor.fetchone():
+                cursor.execute("SELECT id, salt FROM users WHERE username = ?", (uname,))
+                existing_user = cursor.fetchone()
+                if not existing_user:
                     salt = secrets.token_hex(16)
                     pwd_hash = self._hash_password(pwd, salt)
                     cursor.execute("""
                         INSERT INTO users (id, username, full_name, email, password_hash, salt, role, department)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """, (uid, uname, fname, email, pwd_hash, salt, role, dept))
+                else:
+                    # Guarantee default passwords always stay in sync across cloud deployments
+                    salt = existing_user["salt"]
+                    pwd_hash = self._hash_password(pwd, salt)
+                    cursor.execute("""
+                        UPDATE users
+                        SET password_hash = ?, salt = ?, role = ?, department = ?
+                        WHERE username = ?
+                    """, (pwd_hash, salt, role, dept, uname))
 
             # Seed permissions for sample documents
             doc_rules = [

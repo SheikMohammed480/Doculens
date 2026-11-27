@@ -104,6 +104,14 @@
                     <span>Authenticate & Access Studio</span>
                     <span>→</span>
                 </button>
+                <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 font-mono">
+                    <span>Default credentials:</span>
+                    <div class="flex gap-2">
+                        <button type="button" class="text-sky-400 hover:text-sky-300 underline font-bold" onclick="document.getElementById('gateLoginUsername').value='admin'; document.getElementById('gateLoginPassword').value='admin123';">admin / admin123</button>
+                        <span>•</span>
+                        <button type="button" class="text-amber-400 hover:text-amber-300 underline font-bold" onclick="document.getElementById('gateLoginUsername').value='auditor'; document.getElementById('gateLoginPassword').value='auditor123';">auditor / auditor123</button>
+                    </div>
+                </div>
             </form>
 
             <!-- Register Form -->
@@ -133,19 +141,27 @@
                 </button>
             </form>
 
-            <!-- 1-Click Auditor Demo Profile -->
+            <!-- 1-Click Fast Testing Demo Profiles -->
             <div class="pt-4 border-t border-slate-800/80 space-y-2">
                 <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-center">
                     ⚡ Fast 1-Click Testing Demo:
                 </p>
-                <button type="button" class="demo-login-btn w-full p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-center transition flex items-center justify-center gap-2 group" data-user="auditor">
-                    <span class="text-base">⚖️</span>
-                    <div class="text-left">
-                        <span class="text-xs font-bold text-amber-400 group-hover:text-white">Auditor Demo Mode (Contracts & Invoices)</span>
-                        <span class="text-[10px] text-slate-400 block">Pre-loaded with MSAs, SOWs, and Commercial Invoices</span>
-                    </div>
-                </button>
-                <p class="text-[10px] text-slate-500 text-center font-mono">System Administrator access is restricted to the pre-seeded admin account.</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" class="demo-login-btn p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-left transition flex items-center gap-2 group" data-user="admin">
+                        <span class="text-base">👑</span>
+                        <div>
+                            <span class="text-xs font-bold text-sky-400 group-hover:text-white block">Admin Demo</span>
+                            <span class="text-[9px] text-slate-400 block">All 5 Documents</span>
+                        </div>
+                    </button>
+                    <button type="button" class="demo-login-btn p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-left transition flex items-center gap-2 group" data-user="auditor">
+                        <span class="text-base">⚖️</span>
+                        <div>
+                            <span class="text-xs font-bold text-amber-400 group-hover:text-white block">Auditor Demo</span>
+                            <span class="text-[9px] text-slate-400 block">Contracts & Invoices</span>
+                        </div>
+                    </button>
+                </div>
             </div>
 
         </div>
