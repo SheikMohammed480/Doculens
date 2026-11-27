@@ -132,6 +132,14 @@ class AuthManager:
         username = username.strip().lower()
         email = email.strip().lower()
 
+        # Input validations
+        if not username or len(username) < 3:
+            raise ValueError("Username must be at least 3 characters long.")
+        if not password or len(password) < 4:
+            raise ValueError("Password must be at least 4 characters long.")
+        if not email or "@" not in email:
+            raise ValueError("Please provide a valid corporate email address.")
+
         # Security Enforcement: All public sign-ups are strictly constrained to 'user' role
         role = "user"
 
@@ -140,9 +148,13 @@ class AuthManager:
 
         with self._get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT id FROM users WHERE username = ? OR email = ?", (username, email))
+            cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
             if cursor.fetchone():
-                raise ValueError("Username or email already registered.")
+                raise ValueError("This username is already taken. Please choose another username.")
+
+            cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+            if cursor.fetchone():
+                raise ValueError("An account with this email address already exists. Please sign in.")
 
             user_id = f"usr-{secrets.token_hex(8)}"
             salt = secrets.token_hex(16)
@@ -163,14 +175,23 @@ class AuthManager:
                 "department": department
             }
 
-    def authenticate_user(self, username: str, password: str) -> Optional[Dict[str, Any]]:
+    def authenticate_user_detailed(self, username: str, password: str) -> tuple:
+        """
+        Returns (user_dict, error_message).
+        Provides clear, distinct feedback: missing input, user not found, or incorrect password.
+        """
         username = username.strip().lower()
+        if not username:
+            return None, "Please enter your username or email address."
+        if not password:
+            return None, "Please enter your password."
+
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM users WHERE username = ? OR email = ?", (username, username))
             row = cursor.fetchone()
             if not row:
-                return None
+                return None, "User not found. Please verify your username/email or register a new account."
 
             expected_hash = self._hash_password(password, row["salt"])
             if secrets.compare_digest(expected_hash, row["password_hash"]):
@@ -181,8 +202,12 @@ class AuthManager:
                     "email": row["email"],
                     "role": row["role"],
                     "department": row["department"]
-                }
-        return None
+                }, None
+            return None, "Incorrect password. Please verify your password and try again."
+
+    def authenticate_user(self, username: str, password: str) -> Optional[Dict[str, Any]]:
+        user, _ = self.authenticate_user_detailed(username, password)
+        return user
 
     def create_access_token(self, user_info: Dict[str, Any]) -> str:
         payload = {

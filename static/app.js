@@ -22,7 +22,7 @@ function showToast(message, isSuccess = true) {
 
     toastMsg.textContent = message;
     toastIcon.textContent = isSuccess ? '✅' : '⚠️';
-    toast.className = `fixed top-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 transition-all text-xs font-semibold ${
+    toast.className = `fixed top-5 right-5 z-[9999] px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 transition-all text-xs font-semibold ${
         isSuccess ? 'bg-emerald-950/90 border border-emerald-700/80 text-emerald-200' : 'bg-rose-950/90 border border-rose-700/80 text-rose-200'
     }`;
     toast.classList.remove('hidden');
@@ -30,6 +30,56 @@ function showToast(message, isSuccess = true) {
     setTimeout(() => {
         toast.classList.add('hidden');
     }, 4500);
+}
+
+// In-Card Alert Box for instant auth feedback (User Not Found, Incorrect Password, etc.)
+function showAuthAlert(message, type = 'error') {
+    const alertBox = document.getElementById('authAlertBox');
+    const alertIcon = document.getElementById('authAlertIcon');
+    const alertText = document.getElementById('authAlertText');
+    if (!alertBox || !alertText) return;
+
+    alertText.textContent = message;
+
+    if (type === 'error') {
+        alertIcon.textContent = '❌';
+        alertBox.className = 'p-3 rounded-xl border text-xs font-semibold flex items-center gap-2.5 transition-all bg-rose-950/90 border-rose-600/80 text-rose-200 shadow-lg';
+    } else if (type === 'success') {
+        alertIcon.textContent = '✅';
+        alertBox.className = 'p-3 rounded-xl border text-xs font-semibold flex items-center gap-2.5 transition-all bg-emerald-950/90 border-emerald-600/80 text-emerald-200 shadow-lg';
+    } else if (type === 'warning') {
+        alertIcon.textContent = '⚠️';
+        alertBox.className = 'p-3 rounded-xl border text-xs font-semibold flex items-center gap-2.5 transition-all bg-amber-950/90 border-amber-600/80 text-amber-200 shadow-lg';
+    } else {
+        alertIcon.textContent = 'ℹ️';
+        alertBox.className = 'p-3 rounded-xl border text-xs font-semibold flex items-center gap-2.5 transition-all bg-sky-950/90 border-sky-600/80 text-sky-200 shadow-lg';
+    }
+    alertBox.classList.remove('hidden');
+}
+
+function hideAuthAlert() {
+    const alertBox = document.getElementById('authAlertBox');
+    if (alertBox) alertBox.classList.add('hidden');
+}
+
+// Password toggle helper for Show/Hide (👁️ / 🙈)
+function setupPasswordToggle(buttonId, inputId) {
+    const btn = document.getElementById(buttonId);
+    const input = document.getElementById(inputId);
+    if (!btn || !input) return;
+
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.textContent = '🙈';
+            btn.title = 'Hide password';
+        } else {
+            input.type = 'password';
+            btn.textContent = '👁️';
+            btn.title = 'Show password';
+        }
+    });
 }
 
 // Wrapper for authenticated fetch calls
@@ -73,6 +123,18 @@ function exitStudio() {
     if (studioView) studioView.classList.add('hidden');
     if (gateView) gateView.classList.remove('hidden');
 
+    hideAuthAlert();
+
+    // Reset password fields to hidden state and empty value
+    const loginPwd = document.getElementById('gateLoginPassword');
+    const regPwd = document.getElementById('gateRegPassword');
+    const toggleLogin = document.getElementById('toggleLoginPasswordBtn');
+    const toggleReg = document.getElementById('toggleRegPasswordBtn');
+    if (loginPwd) { loginPwd.type = 'password'; loginPwd.value = ''; }
+    if (regPwd) { regPwd.type = 'password'; regPwd.value = ''; }
+    if (toggleLogin) { toggleLogin.textContent = '👁️'; }
+    if (toggleReg) { toggleReg.textContent = '👁️'; }
+
     // Always reset to Sign In tab on logout so user is not stuck on the Register form
     if (tabSignIn && tabRegister && signInForm && registerForm) {
         tabSignIn.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/30 transition';
@@ -81,7 +143,7 @@ function exitStudio() {
         registerForm.classList.add('hidden');
     }
 
-    showToast('Signed out. Please sign in or register to access confidential files.', false);
+    showToast('Signed out successfully.', false);
 }
 
 // Update UI to reflect current user identity
@@ -108,6 +170,7 @@ function updateProfileUI(user) {
 
 // Switch user using demo credentials
 async function switchDemoUser(username) {
+    hideAuthAlert();
     const passwords = {
         'admin': 'admin123',
         'auditor': 'auditor123'
@@ -121,14 +184,21 @@ async function switchDemoUser(username) {
             body: JSON.stringify({ username, password })
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Login failed');
+        if (!res.ok) {
+            const errorMsg = data.detail || 'Demo login failed';
+            showAuthAlert(errorMsg, 'error');
+            showToast(`Authentication Error: ${errorMsg}`, false);
+            return;
+        }
 
         currentAuthToken = data.token;
         localStorage.setItem('doculens_jwt', data.token);
 
         enterStudio(data.user);
     } catch (err) {
-        showToast(`Authentication Error: ${err.message}`, false);
+        const errorMsg = err.message || 'Authentication error';
+        showAuthAlert(errorMsg, 'error');
+        showToast(`Authentication Error: ${errorMsg}`, false);
     }
 }
 
@@ -585,12 +655,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (tabSignIn && tabRegister && signInForm && registerForm) {
         tabSignIn.addEventListener('click', () => {
+            hideAuthAlert();
             tabSignIn.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/30 transition';
             tabRegister.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition';
             signInForm.classList.remove('hidden');
             registerForm.classList.add('hidden');
         });
         tabRegister.addEventListener('click', () => {
+            hideAuthAlert();
             tabRegister.className = 'flex-1 py-2 text-xs font-bold rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition';
             tabSignIn.className = 'flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition';
             registerForm.classList.remove('hidden');
@@ -598,12 +670,41 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // Dismiss alert button listener
+    const alertDismissBtn = document.getElementById('authAlertDismiss');
+    if (alertDismissBtn) {
+        alertDismissBtn.addEventListener('click', hideAuthAlert);
+    }
+
+    // Auto-clear alert when user types in any login or register input field
+    document.querySelectorAll('#gateSignInForm input, #gateRegisterForm input').forEach(input => {
+        input.addEventListener('input', hideAuthAlert);
+    });
+
+    // Password visibility toggle buttons (Show / Hide 👁️ 🙈)
+    setupPasswordToggle('toggleLoginPasswordBtn', 'gateLoginPassword');
+    setupPasswordToggle('toggleRegPasswordBtn', 'gateRegPassword');
+
     // ================= 3. GATE FORM SUBMISSIONS =================
     if (signInForm) {
         signInForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const username = document.getElementById('gateLoginUsername').value.trim();
-            const password = document.getElementById('gateLoginPassword').value;
+            hideAuthAlert();
+            const usernameInput = document.getElementById('gateLoginUsername');
+            const passwordInput = document.getElementById('gateLoginPassword');
+            const username = usernameInput ? usernameInput.value.trim() : '';
+            const password = passwordInput ? passwordInput.value : '';
+
+            if (!username) {
+                showAuthAlert('Please enter your corporate username or email address.', 'warning');
+                showToast('Please enter username or email.', false);
+                return;
+            }
+            if (!password) {
+                showAuthAlert('Please enter your password.', 'warning');
+                showToast('Please enter your password.', false);
+                return;
+            }
 
             try {
                 const res = await fetch('/api/auth/login', {
@@ -612,17 +713,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                     body: JSON.stringify({ username, password })
                 });
                 const data = await res.json();
-                if (!res.ok) throw new Error(data.detail || 'Authentication failed');
+                if (!res.ok) {
+                    const errorMsg = data.detail || 'Authentication failed. Please verify credentials.';
+                    showAuthAlert(errorMsg, 'error');
+                    showToast(`Sign In Failed: ${errorMsg}`, false);
+                    return;
+                }
 
                 currentAuthToken = data.token;
                 localStorage.setItem('doculens_jwt', data.token);
 
-                const loginUserEl = document.getElementById('gateLoginUsername');
-                if (loginUserEl) loginUserEl.value = username;
+                if (usernameInput) usernameInput.value = username;
 
+                showAuthAlert('Authentication successful! Loading studio...', 'success');
                 enterStudio(data.user);
             } catch (err) {
-                showToast(`Sign In Error: ${err.message}`, false);
+                const errorMsg = err.message || 'Unable to connect to authentication service.';
+                showAuthAlert(errorMsg, 'error');
+                showToast(`Sign In Error: ${errorMsg}`, false);
             }
         });
     }
@@ -630,10 +738,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (registerForm) {
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            hideAuthAlert();
             const username = document.getElementById('gateRegUsername').value.trim();
             const full_name = document.getElementById('gateRegFullName').value.trim();
             const email = document.getElementById('gateRegEmail').value.trim();
             const password = document.getElementById('gateRegPassword').value;
+
+            if (!username || username.length < 3) {
+                showAuthAlert('Username must be at least 3 characters long.', 'warning');
+                showToast('Username must be at least 3 characters long.', false);
+                return;
+            }
+            if (!email || !email.includes('@')) {
+                showAuthAlert('Please enter a valid corporate email address.', 'warning');
+                showToast('Please enter a valid corporate email address.', false);
+                return;
+            }
+            if (!password || password.length < 4) {
+                showAuthAlert('Password must be at least 4 characters long.', 'warning');
+                showToast('Password must be at least 4 characters long.', false);
+                return;
+            }
 
             try {
                 const res = await fetch('/api/auth/register', {
@@ -642,7 +767,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                     body: JSON.stringify({ username, full_name, email, password })
                 });
                 const data = await res.json();
-                if (!res.ok) throw new Error(data.detail || 'Registration failed');
+                if (!res.ok) {
+                    const errorMsg = data.detail || 'Registration failed.';
+                    showAuthAlert(errorMsg, 'error');
+                    showToast(`Sign Up Failed: ${errorMsg}`, false);
+                    return;
+                }
 
                 currentAuthToken = data.token;
                 localStorage.setItem('doculens_jwt', data.token);
@@ -650,9 +780,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const loginUserEl = document.getElementById('gateLoginUsername');
                 if (loginUserEl) loginUserEl.value = username;
 
+                showAuthAlert('Account created successfully! Loading studio...', 'success');
                 enterStudio(data.user);
             } catch (err) {
-                showToast(`Sign Up Error: ${err.message}`, false);
+                const errorMsg = err.message || 'Unable to connect to registration service.';
+                showAuthAlert(errorMsg, 'error');
+                showToast(`Sign Up Error: ${errorMsg}`, false);
             }
         });
     }

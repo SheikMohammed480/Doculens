@@ -129,9 +129,9 @@ def get_current_user(authorization: Optional[str] = Header(None)) -> Dict[str, A
 
 @app.post("/api/auth/login")
 def login(req: LoginRequest):
-    user = auth_mgr.authenticate_user(req.username, req.password)
+    user, err_msg = auth_mgr.authenticate_user_detailed(req.username, req.password)
     if not user:
-        raise HTTPException(status_code=401, detail="Invalid username or password.")
+        raise HTTPException(status_code=401, detail=err_msg or "Invalid username or password.")
     
     token = auth_mgr.create_access_token(user)
     permitted = auth_mgr.get_user_permitted_documents(user["id"], user["role"])

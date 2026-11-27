@@ -53,8 +53,8 @@
 </head>
 <body class="h-screen flex overflow-hidden">
 
-    <!-- Global Toast Notification -->
-    <div id="toastNotification" class="hidden fixed top-5 right-5 z-50 bg-slate-900 border border-slate-700 text-white text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 transition-all">
+    <!-- Global Toast Notification (Highest z-index so it always floats above modals) -->
+    <div id="toastNotification" class="hidden fixed top-5 right-5 z-[9999] bg-slate-900 border border-slate-700 text-white text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 transition-all pointer-events-auto">
         <span id="toastIcon">ℹ️</span>
         <span id="toastMessage">Notification</span>
     </div>
@@ -90,6 +90,13 @@
                 </button>
             </div>
 
+            <!-- In-Card Live Feedback Alert Box (Shows instant error, warning, or success message) -->
+            <div id="authAlertBox" class="hidden p-3 rounded-xl border text-xs font-semibold flex items-center gap-2.5 transition-all">
+                <span id="authAlertIcon" class="text-base flex-shrink-0">⚠️</span>
+                <span id="authAlertText" class="flex-1 leading-snug"></span>
+                <button type="button" id="authAlertDismiss" class="text-slate-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded focus:outline-none">✕</button>
+            </div>
+
             <!-- Sign In Form -->
             <form id="gateSignInForm" class="space-y-4">
                 <div>
@@ -98,7 +105,12 @@
                 </div>
                 <div>
                     <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Password</label>
-                    <input type="password" id="gateLoginPassword" placeholder="••••••••" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 font-mono">
+                    <div class="relative">
+                        <input type="password" id="gateLoginPassword" placeholder="••••••••" required class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 font-mono">
+                        <button type="button" id="toggleLoginPasswordBtn" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-sm transition focus:outline-none p-1 rounded" title="Show/Hide Password">
+                            👁️
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-slate-950 text-xs font-extrabold transition shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2">
                     <span>Authenticate & Access Studio</span>
@@ -130,7 +142,12 @@
                 </div>
                 <div>
                     <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Password</label>
-                    <input type="password" id="gateRegPassword" placeholder="••••••••" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500 font-mono">
+                    <div class="relative">
+                        <input type="password" id="gateRegPassword" placeholder="••••••••" required class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-3.5 pr-10 py-2 text-xs text-white focus:outline-none focus:border-sky-500 font-mono">
+                        <button type="button" id="toggleRegPasswordBtn" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-sm transition focus:outline-none p-1 rounded" title="Show/Hide Password">
+                            👁️
+                        </button>
+                    </div>
                 </div>
                 <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-[11px] text-slate-400 font-mono leading-relaxed">
                     🔒 Security Clearance: New accounts are granted standard <b>User</b> clearance (strictly tenant-isolated to their own uploaded files).
